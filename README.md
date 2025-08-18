@@ -120,19 +120,39 @@ matrimonial-app/
 ## 🔧 Setup Instructions
 
 ### Prerequisites
+
+#### For Linux/macOS
 - Python 3.12+
 - Node.js 20+
 - PostgreSQL 14+
 - Poetry (Python package manager)
 - pnpm (Node.js package manager)
 
+#### For Windows
+- Python 3.12+ (from [python.org](https://www.python.org/downloads/))
+- Node.js 20+ (from [nodejs.org](https://nodejs.org/))
+- PostgreSQL 14+ (from [postgresql.org](https://www.postgresql.org/download/windows/))
+- Poetry (Python package manager)
+- pnpm (Node.js package manager)
+- Git for Windows (from [git-scm.com](https://git-scm.com/download/win))
+
 ### 1. Clone Repository
+
+#### Linux/macOS
 ```bash
 git clone https://github.com/rizwan100/Myproject.git
 cd Myproject
 ```
 
+#### Windows (Command Prompt/PowerShell)
+```cmd
+git clone https://github.com/rizwan100/Myproject.git
+cd Myproject
+```
+
 ### 2. Backend Setup
+
+#### Linux/macOS
 ```bash
 cd backend
 
@@ -156,7 +176,63 @@ poetry run prisma db push
 poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+#### Windows (Command Prompt)
+```cmd
+cd backend
+
+REM Install Poetry if not installed
+pip install poetry
+
+REM Install dependencies
+poetry install
+
+REM Activate virtual environment
+poetry shell
+
+REM Set up environment variables (see Environment Variables section)
+copy .env.example .env
+REM Edit .env with your configuration using notepad or your preferred editor
+
+REM Generate Prisma client
+poetry run prisma generate
+
+REM Run database migrations
+poetry run prisma db push
+
+REM Start backend server
+poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+#### Windows (PowerShell)
+```powershell
+cd backend
+
+# Install Poetry if not installed
+pip install poetry
+
+# Install dependencies
+poetry install
+
+# Activate virtual environment
+poetry shell
+
+# Set up environment variables (see Environment Variables section)
+Copy-Item .env.example .env
+# Edit .env with your configuration using notepad or your preferred editor
+
+# Generate Prisma client
+poetry run prisma generate
+
+# Run database migrations
+poetry run prisma db push
+
+# Start backend server
+poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
 ### 3. Frontend Setup
+
+#### Linux/macOS
 ```bash
 cd frontend
 
@@ -167,9 +243,31 @@ pnpm install
 pnpm dev
 ```
 
+#### Windows (Command Prompt/PowerShell)
+```cmd
+cd frontend
+
+REM Install pnpm if not installed
+npm install -g pnpm
+
+REM Install dependencies
+pnpm install
+
+REM Start development server
+pnpm dev
+```
+
 ### 4. Create Admin User
+
+#### Linux/macOS
 ```bash
 # From root directory
+python create_admin.py
+```
+
+#### Windows
+```cmd
+REM From root directory
 python create_admin.py
 ```
 
@@ -211,6 +309,8 @@ NEXT_PUBLIC_APP_NAME="Aasan Rishte"
 ## 🗄 Database Setup
 
 ### PostgreSQL Setup
+
+#### Linux/macOS
 ```bash
 # Create database
 createdb matrimonial_db
@@ -220,7 +320,27 @@ psql -U postgres
 CREATE DATABASE matrimonial_db;
 ```
 
+#### Windows
+```cmd
+REM Create database using psql (after installing PostgreSQL)
+psql -U postgres
+CREATE DATABASE matrimonial_db;
+\q
+
+REM Or using createdb command
+createdb -U postgres matrimonial_db
+```
+
+**Windows PostgreSQL Installation Notes:**
+1. Download PostgreSQL from [postgresql.org](https://www.postgresql.org/download/windows/)
+2. Run the installer and follow the setup wizard
+3. Remember the password you set for the `postgres` user
+4. Add PostgreSQL bin directory to your PATH environment variable
+5. Default installation path: `C:\Program Files\PostgreSQL\15\bin`
+
 ### Prisma Commands
+
+#### Linux/macOS
 ```bash
 # Generate Prisma client
 poetry run prisma generate
@@ -235,9 +355,26 @@ poetry run prisma studio
 poetry run prisma db reset
 ```
 
+#### Windows
+```cmd
+REM Generate Prisma client
+poetry run prisma generate
+
+REM Push schema to database
+poetry run prisma db push
+
+REM Open Prisma Studio
+poetry run prisma studio
+
+REM Reset database (development only)
+poetry run prisma db reset
+```
+
 ## 🚀 Running the Application
 
 ### Development Mode
+
+#### Linux/macOS
 ```bash
 # Terminal 1: Backend
 cd backend
@@ -248,13 +385,38 @@ cd frontend
 pnpm dev
 ```
 
+#### Windows
+```cmd
+REM Terminal 1: Backend
+cd backend
+poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+REM Terminal 2: Frontend (open new command prompt)
+cd frontend
+pnpm dev
+```
+
 ### Production Mode
+
+#### Linux/macOS
 ```bash
 # Backend
 cd backend
 poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 # Frontend
+cd frontend
+pnpm build
+pnpm start
+```
+
+#### Windows
+```cmd
+REM Backend
+cd backend
+poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+REM Frontend
 cd frontend
 pnpm build
 pnpm start
@@ -291,6 +453,8 @@ POST   /admin/users/admin        # Create new admin user
 ```
 
 ### Creating Additional Admins
+
+#### Linux/macOS
 ```bash
 # Method 1: Use the admin panel (recommended)
 # Login as admin → Admin Panel → Create Admin
@@ -303,6 +467,21 @@ curl -X POST "http://localhost:8000/admin/users/admin" \
   -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"email": "new-admin@example.com", "password": "secure-password"}'
+```
+
+#### Windows
+```cmd
+REM Method 1: Use the admin panel (recommended)
+REM Login as admin → Admin Panel → Create Admin
+
+REM Method 2: Use the script
+python create_admin.py
+
+REM Method 3: Direct API call (using curl for Windows or PowerShell)
+curl -X POST "http://localhost:8000/admin/users/admin" ^
+  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\": \"new-admin@example.com\", \"password\": \"secure-password\"}"
 ```
 
 ## 📚 API Documentation
@@ -373,6 +552,8 @@ pnpm build
 - **Tailwind**: Utility-first CSS
 
 ### Git Workflow
+
+#### Linux/macOS
 ```bash
 # Create feature branch
 git checkout -b feature/your-feature-name
@@ -385,7 +566,22 @@ git commit -m "feat: add your feature description"
 git push origin feature/your-feature-name
 ```
 
+#### Windows
+```cmd
+REM Create feature branch
+git checkout -b feature/your-feature-name
+
+REM Make changes and commit
+git add .
+git commit -m "feat: add your feature description"
+
+REM Push and create PR
+git push origin feature/your-feature-name
+```
+
 ### Testing
+
+#### Linux/macOS
 ```bash
 # Frontend tests
 cd frontend
@@ -396,7 +592,20 @@ cd backend
 poetry run pytest
 ```
 
+#### Windows
+```cmd
+REM Frontend tests
+cd frontend
+pnpm test
+
+REM Backend tests
+cd backend
+poetry run pytest
+```
+
 ### Database Migrations
+
+#### Linux/macOS
 ```bash
 # After schema changes
 poetry run prisma db push
@@ -405,16 +614,39 @@ poetry run prisma db push
 poetry run prisma migrate dev --name your-migration-name
 ```
 
+#### Windows
+```cmd
+REM After schema changes
+poetry run prisma db push
+
+REM For production
+poetry run prisma migrate dev --name your-migration-name
+```
+
 ## 🔍 Troubleshooting
 
 ### Common Issues
 
 1. **Database Connection Error**
+   
+   **Linux/macOS:**
    ```bash
    # Check PostgreSQL is running
    sudo systemctl status postgresql
    
    # Check connection string in .env
+   DATABASE_URL="postgresql://username:password@localhost:5432/matrimonial_db"
+   ```
+   
+   **Windows:**
+   ```cmd
+   REM Check PostgreSQL service is running
+   sc query postgresql-x64-15
+   
+   REM Or check in Services (services.msc)
+   REM Look for "postgresql-x64-15" service
+   
+   REM Check connection string in .env
    DATABASE_URL="postgresql://username:password@localhost:5432/matrimonial_db"
    ```
 
@@ -426,6 +658,8 @@ poetry run prisma migrate dev --name your-migration-name
    ```
 
 3. **Admin Login Issues**
+   
+   **Linux/macOS:**
    ```bash
    # Reset admin password
    python update_admin_email.py
@@ -433,15 +667,57 @@ poetry run prisma migrate dev --name your-migration-name
    # Or create new admin
    python create_admin.py
    ```
+   
+   **Windows:**
+   ```cmd
+   REM Reset admin password
+   python update_admin_email.py
+   
+   REM Or create new admin
+   python create_admin.py
+   ```
 
 4. **Frontend Build Errors**
+   
+   **Linux/macOS:**
    ```bash
    # Clear Next.js cache
    rm -rf .next
    pnpm build
    ```
+   
+   **Windows:**
+   ```cmd
+   REM Clear Next.js cache
+   rmdir /s .next
+   pnpm build
+   ```
+
+5. **Windows-Specific Issues**
+   
+   **Path Issues:**
+   ```cmd
+   REM Add Python to PATH
+   REM Add Node.js to PATH
+   REM Add PostgreSQL bin to PATH
+   REM Example: C:\Program Files\PostgreSQL\15\bin
+   ```
+   
+   **Permission Issues:**
+   ```cmd
+   REM Run Command Prompt as Administrator if needed
+   REM Or use PowerShell with elevated privileges
+   ```
+   
+   **Line Ending Issues:**
+   ```cmd
+   REM Configure git to handle line endings
+   git config --global core.autocrlf true
+   ```
 
 ### Logs and Debugging
+
+#### Linux/macOS
 ```bash
 # Backend logs
 poetry run uvicorn app.main:app --reload --log-level debug
@@ -452,6 +728,143 @@ pnpm dev
 # Database logs
 poetry run prisma studio
 ```
+
+#### Windows
+```cmd
+REM Backend logs
+poetry run uvicorn app.main:app --reload --log-level debug
+
+REM Frontend logs
+pnpm dev
+
+REM Database logs
+poetry run prisma studio
+```
+
+## 🪟 Windows-Specific Setup Guide
+
+### Step-by-Step Windows Installation
+
+#### 1. Install Python 3.12+
+1. Download from [python.org](https://www.python.org/downloads/)
+2. **Important**: Check "Add Python to PATH" during installation
+3. Verify installation: `python --version`
+
+#### 2. Install Node.js 20+
+1. Download from [nodejs.org](https://nodejs.org/)
+2. Install with default settings
+3. Verify installation: `node --version` and `npm --version`
+
+#### 3. Install Git for Windows
+1. Download from [git-scm.com](https://git-scm.com/download/win)
+2. Install with default settings
+3. Verify installation: `git --version`
+
+#### 4. Install PostgreSQL
+1. Download from [postgresql.org](https://www.postgresql.org/download/windows/)
+2. During installation:
+   - Remember the password for `postgres` user
+   - Default port: 5432
+   - Install pgAdmin 4 (recommended)
+3. Add PostgreSQL bin to PATH:
+   - Open System Properties → Environment Variables
+   - Add `C:\Program Files\PostgreSQL\15\bin` to PATH
+4. Verify installation: `psql --version`
+
+#### 5. Install Poetry
+```cmd
+pip install poetry
+poetry --version
+```
+
+#### 6. Install pnpm
+```cmd
+npm install -g pnpm
+pnpm --version
+```
+
+### Windows Environment Setup
+
+#### Setting Environment Variables
+1. Open System Properties (Win + R → `sysdm.cpl`)
+2. Click "Environment Variables"
+3. Add to User or System variables:
+   - `PYTHON_PATH`: Python installation directory
+   - `NODE_PATH`: Node.js installation directory
+   - `POSTGRES_PATH`: PostgreSQL bin directory
+
+#### Using Windows Terminal (Recommended)
+1. Install Windows Terminal from Microsoft Store
+2. Set PowerShell or Command Prompt as default
+3. Configure Git Bash integration
+
+#### PowerShell Execution Policy
+If you encounter execution policy errors:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Windows Development Tips
+
+#### 1. Use Windows Subsystem for Linux (WSL) - Optional
+For a Linux-like experience:
+```cmd
+wsl --install
+```
+
+#### 2. Recommended Code Editors
+- **Visual Studio Code** (with Python and Node.js extensions)
+- **PyCharm** (for Python development)
+- **WebStorm** (for Node.js/React development)
+
+#### 3. Database Management
+- **pgAdmin 4** (installed with PostgreSQL)
+- **DBeaver** (universal database tool)
+
+#### 4. Terminal Alternatives
+- **Windows Terminal** (recommended)
+- **Git Bash** (comes with Git for Windows)
+- **PowerShell** (built-in)
+- **Command Prompt** (built-in)
+
+### Windows Troubleshooting
+
+#### Common Windows Issues
+
+1. **"python" not recognized**
+   ```cmd
+   REM Add Python to PATH or use full path
+   C:\Users\YourName\AppData\Local\Programs\Python\Python312\python.exe
+   ```
+
+2. **"poetry" not recognized**
+   ```cmd
+   REM Reinstall poetry or add to PATH
+   pip install --user poetry
+   ```
+
+3. **PostgreSQL connection issues**
+   ```cmd
+   REM Check if service is running
+   net start postgresql-x64-15
+   
+   REM Or use Services manager (services.msc)
+   ```
+
+4. **Port already in use**
+   ```cmd
+   REM Find process using port
+   netstat -ano | findstr :8000
+   
+   REM Kill process by PID
+   taskkill /PID <PID> /F
+   ```
+
+5. **Permission denied errors**
+   ```cmd
+   REM Run as Administrator
+   REM Right-click Command Prompt → "Run as administrator"
+   ```
 
 ## 📞 Support
 
