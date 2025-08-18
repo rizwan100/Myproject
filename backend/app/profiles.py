@@ -48,6 +48,7 @@ class ProfileCreate(BaseModel):
 
 class ProfileResponse(BaseModel):
     id: str
+    userId: str
     name: str
     gender: str
     age: int
@@ -124,6 +125,7 @@ async def create_profile(profile_data: ProfileCreate, current_user = Depends(get
     
     return ProfileResponse(
         id=profile.id,
+        userId=profile.userId,
         name=profile.name,
         gender=profile.gender,
         age=profile.age,
@@ -260,6 +262,7 @@ async def get_profiles(
     return [
         ProfileResponse(
             id=profile.id,
+            userId=profile.userId,
             name=profile.name,
             gender=profile.gender,
             age=profile.age,
@@ -320,6 +323,7 @@ async def get_profile(profile_id: str, current_user = Depends(get_current_user))
     
     return ProfileResponse(
         id=profile.id,
+        userId=profile.userId,
         name=profile.name,
         gender=profile.gender,
         age=profile.age,
@@ -363,20 +367,11 @@ async def get_profile_by_name(
         raise HTTPException(status_code=404, detail="Profile not found")
     
     
-    show_phone = False
-    if current_user:
-        mutual_interest = await db.interest.find_first(
-            where={
-                "OR": [
-                    {"fromUserId": current_user.id, "toUserId": profile.userId, "status": "ACCEPTED"},
-                    {"fromUserId": profile.userId, "toUserId": current_user.id, "status": "ACCEPTED"}
-                ]
-            }
-        )
-        show_phone = mutual_interest is not None
+    show_phone = current_user is not None
     
     return ProfileResponse(
         id=profile.id,
+        userId=profile.userId,
         name=profile.name,
         gender=profile.gender,
         age=profile.age,
