@@ -102,7 +102,7 @@ async def get_conversations(current_user = Depends(get_current_user)):
             "userB": {"include": {"profile": True}},
             "messages": {
                 "take": 1,
-                "order": {"createdAt": "desc"}
+                "orderBy": {"createdAt": "desc"}
             }
         },
         order={"createdAt": "desc"}

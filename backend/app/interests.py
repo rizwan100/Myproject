@@ -43,17 +43,69 @@ async def send_interest(interest_data: InterestCreate, current_user = Depends(ge
     if existing_interest:
         raise HTTPException(status_code=400, detail="Interest already sent")
     
-    interest = await db.interest.create(
-        data={
-            "fromUserId": current_user.id,
-            "toUserId": interest_data.toUserId,
-            "status": "PENDING"
-        },
-        include={
-            "fromUser": {"include": {"profile": True}},
-            "toUser": {"include": {"profile": True}}
-        }
+    reverse_interest = await db.interest.find_unique(
+        where={"fromUserId_toUserId": {"fromUserId": interest_data.toUserId, "toUserId": current_user.id}}
     )
+    
+    print(f"DEBUG: Looking for reverse interest from {interest_data.toUserId} to {current_user.id}")
+    print(f"DEBUG: Found reverse interest: {reverse_interest}")
+    if reverse_interest:
+        print(f"DEBUG: Reverse interest status: {reverse_interest.status}")
+    
+    if reverse_interest and reverse_interest.status == "PENDING":
+        print(f"DEBUG: Mutual interest detected! Updating both interests to ACCEPTED")
+        
+        await db.interest.update(
+            where={"id": reverse_interest.id},
+            data={"status": "ACCEPTED"}
+        )
+        
+        interest = await db.interest.create(
+            data={
+                "fromUserId": current_user.id,
+                "toUserId": interest_data.toUserId,
+                "status": "ACCEPTED"
+            },
+            include={
+                "fromUser": {"include": {"profile": True}},
+                "toUser": {"include": {"profile": True}}
+            }
+        )
+        
+        print(f"DEBUG: Created new interest with ACCEPTED status: {interest.id}")
+        
+        existing_conversation = await db.conversation.find_first(
+            where={
+                "OR": [
+                    {"aUserId": current_user.id, "bUserId": interest_data.toUserId},
+                    {"aUserId": interest_data.toUserId, "bUserId": current_user.id}
+                ]
+            }
+        )
+        
+        if not existing_conversation:
+            conversation = await db.conversation.create(
+                data={
+                    "aUserId": current_user.id,
+                    "bUserId": interest_data.toUserId
+                }
+            )
+            print(f"DEBUG: Created conversation: {conversation.id}")
+        else:
+            print(f"DEBUG: Conversation already exists: {existing_conversation.id}")
+    else:
+        print(f"DEBUG: No mutual interest detected, creating PENDING interest")
+        interest = await db.interest.create(
+            data={
+                "fromUserId": current_user.id,
+                "toUserId": interest_data.toUserId,
+                "status": "PENDING"
+            },
+            include={
+                "fromUser": {"include": {"profile": True}},
+                "toUser": {"include": {"profile": True}}
+            }
+        )
     
     return InterestResponse(
         id=interest.id,
