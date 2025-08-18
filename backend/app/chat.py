@@ -28,6 +28,7 @@ class ConversationResponse(BaseModel):
     createdAt: str
     otherUser: dict
     lastMessage: Optional[dict] = None
+    unreadCount: int = 0
 
 class ConnectionManager:
     def __init__(self):
@@ -113,6 +114,14 @@ async def get_conversations(current_user = Depends(get_current_user)):
         other_user = conv.userB if conv.aUserId == current_user.id else conv.userA
         last_message = conv.messages[0] if conv.messages else None
         
+        unread_count = await db.message.count(
+            where={
+                "conversationId": conv.id,
+                "senderId": {"not": current_user.id},
+                "readAt": None
+            }
+        )
+        
         result.append(ConversationResponse(
             id=conv.id,
             aUserId=conv.aUserId,
@@ -128,7 +137,8 @@ async def get_conversations(current_user = Depends(get_current_user)):
                 "text": last_message.text,
                 "createdAt": last_message.createdAt.isoformat(),
                 "senderId": last_message.senderId
-            } if last_message else None
+            } if last_message else None,
+            unreadCount=unread_count
         ))
     
     return result
@@ -213,3 +223,22 @@ async def send_message(message_data: MessageCreate, current_user = Depends(get_c
         text=message.text,
         createdAt=message.createdAt.isoformat()
     )
+
+@router.patch("/messages/{message_id}/read")
+async def mark_message_as_read(message_id: str, current_user = Depends(get_current_user)):
+    message = await db.message.find_unique(where={"id": message_id})
+    
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    conversation = await db.conversation.find_unique(where={"id": message.conversationId})
+    if not conversation or (conversation.aUserId != current_user.id and conversation.bUserId != current_user.id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if message.senderId != current_user.id:
+        await db.message.update(
+            where={"id": message_id},
+            data={"readAt": datetime.now()}
+        )
+    
+    return {"message": "Message marked as read"}

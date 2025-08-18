@@ -72,6 +72,7 @@ class ProfileResponse(BaseModel):
     photos: List[dict] = []
     documents: List[dict] = []
     mobileNumber: Optional[str] = None  # Only shown for mutual matches or premium
+    hasMutualInterest: bool = False  # Indicates if mutual interest exists
 
 def calculate_age(birth_date: date) -> int:
     today = date.today()
@@ -369,6 +370,18 @@ async def get_profile_by_name(
     
     show_phone = current_user is not None
     
+    has_mutual_interest = False
+    if current_user:
+        mutual_interest = await db.interest.find_first(
+            where={
+                "OR": [
+                    {"fromUserId": current_user.id, "toUserId": profile.userId, "status": "ACCEPTED"},
+                    {"fromUserId": profile.userId, "toUserId": current_user.id, "status": "ACCEPTED"}
+                ]
+            }
+        )
+        has_mutual_interest = mutual_interest is not None
+    
     return ProfileResponse(
         id=profile.id,
         userId=profile.userId,
@@ -394,5 +407,6 @@ async def get_profile_by_name(
         createdAt=profile.createdAt.isoformat(),
         photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
         documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
-        mobileNumber=profile.mobileNumber if show_phone else None
+        mobileNumber=profile.mobileNumber if show_phone else None,
+        hasMutualInterest=has_mutual_interest
     )
