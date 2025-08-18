@@ -1,0 +1,255 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  GROOM
+  BRIDE
+}
+
+enum MaritalStatus {
+  NEVER_MARRIED
+  DIVORCED
+  WIDOWED
+  SEPARATED
+}
+
+enum ChildrenLivingStatus {
+  WITH_ME
+  NOT_WITH_ME
+  NOT_APPLICABLE
+}
+
+enum Food {
+  VEGETARIAN
+  NON_VEGETARIAN
+  EGGETARIAN
+}
+
+enum Complexion {
+  VERY_FAIR
+  FAIR
+  WHEATISH
+  WHEATISH_BROWN
+  DARK
+}
+
+enum BodyType {
+  AVERAGE
+  ATHLETIC
+  SLIM
+  HEAVY
+}
+
+enum PhysicalStatus {
+  NORMAL
+  PHYSICALLY_CHALLENGED
+}
+
+enum EmploymentType {
+  GOVERNMENT
+  PRIVATE
+  BUSINESS
+  SELF_EMPLOYED
+  NOT_WORKING
+}
+
+enum InterestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum DocumentType {
+  BIODATA_PDF
+}
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  passwordHash String
+  role        Role      @default(USER)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  verifiedAt  DateTime?
+
+  profile       Profile?
+  sentInterests     Interest[] @relation("SentInterests")
+  receivedInterests Interest[] @relation("ReceivedInterests")
+  conversationsA    Conversation[] @relation("UserA")
+  conversationsB    Conversation[] @relation("UserB")
+  sentMessages      Message[]
+  reports           Report[]
+
+  @@map("users")
+}
+
+model Profile {
+  id                    String             @id @default(cuid())
+  userId                String             @unique
+  createdBy             String
+  name                  String
+  gender                Gender
+  dob                   DateTime
+  age                   Int
+  maritalStatus         MaritalStatus
+  noOfChildren          Int                @default(0)
+  childrenLivingStatus  ChildrenLivingStatus?
+  motherTongue          String
+  religion              String
+  caste                 String
+  citizenship           String
+  residingCountry       String
+  state                 String
+  city                  String
+  countryCode           String
+  landline              String?
+  mobileNumber          String
+  food                  Food
+  complexion            Complexion
+  bodyType              BodyType
+  heightCm              Int
+  weightKg              Int
+  physicalStatus        PhysicalStatus
+  bloodGroup            String
+  educationQualification String
+  occupation            String
+  employmentType        EmploymentType
+  annualIncomeCurrency  String
+  annualIncome          Int
+  aboutMe               String
+  visibilityGenderRule  Boolean            @default(true)
+  approved              Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos    Photo[]
+  documents Document[]
+  reports   Report[]
+
+  @@map("profiles")
+  @@index([gender])
+  @@index([city])
+  @@index([caste])
+  @@index([motherTongue])
+  @@index([approved])
+  @@index([createdAt])
+}
+
+model Photo {
+  id        String  @id @default(cuid())
+  profileId String
+  url       String
+  isPrimary Boolean @default(false)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("photos")
+}
+
+model Document {
+  id        String      @id @default(cuid())
+  profileId String
+  url       String
+  type      DocumentType @default(BIODATA_PDF)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model Interest {
+  id         String        @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  status     InterestStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+
+  fromUser User @relation("SentInterests", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("ReceivedInterests", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId])
+  @@map("interests")
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  aUserId   String
+  bUserId   String
+  createdAt DateTime  @default(now())
+
+  userA    User      @relation("UserA", fields: [aUserId], references: [id], onDelete: Cascade)
+  userB    User      @relation("UserB", fields: [bUserId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([aUserId, bUserId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  text           String
+  createdAt      DateTime @default(now())
+  readAt         DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  profileId  String
+  reason     String
+  createdAt  DateTime @default(now())
+  resolved   Boolean  @default(false)
+
+  reporter User    @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  profile  Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model Plan {
+  id          String @id @default(cuid())
+  name        String
+  price       Int
+  features    String[]
+  isActive    Boolean @default(true)
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String
+  planId    String
+  startDate DateTime @default(now())
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
