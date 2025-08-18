@@ -344,3 +344,60 @@ async def get_profile(profile_id: str, current_user = Depends(get_current_user))
         documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
         mobileNumber=profile.mobileNumber if show_phone else None
     )
+
+
+@router.get("/by-name/{profile_name}", response_model=ProfileResponse)
+async def get_profile_by_name(
+    profile_name: str, 
+    current_user = Depends(get_current_user_optional)
+):
+    profile = await db.profile.find_first(
+        where={
+            "name": {"equals": profile_name, "mode": "insensitive"},
+            "approved": True
+        },
+        include={"photos": True, "documents": True}
+    )
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    
+    show_phone = False
+    if current_user:
+        mutual_interest = await db.interest.find_first(
+            where={
+                "OR": [
+                    {"fromUserId": current_user.id, "toUserId": profile.userId, "status": "ACCEPTED"},
+                    {"fromUserId": profile.userId, "toUserId": current_user.id, "status": "ACCEPTED"}
+                ]
+            }
+        )
+        show_phone = mutual_interest is not None
+    
+    return ProfileResponse(
+        id=profile.id,
+        name=profile.name,
+        gender=profile.gender,
+        age=profile.age,
+        maritalStatus=profile.maritalStatus,
+        motherTongue=profile.motherTongue,
+        religion=profile.religion,
+        caste=profile.caste,
+        city=profile.city,
+        state=profile.state,
+        residingCountry=profile.residingCountry,
+        food=profile.food,
+        complexion=profile.complexion,
+        bodyType=profile.bodyType,
+        heightCm=profile.heightCm,
+        physicalStatus=profile.physicalStatus,
+        educationQualification=profile.educationQualification,
+        occupation=profile.occupation,
+        aboutMe=profile.aboutMe,
+        approved=profile.approved,
+        createdAt=profile.createdAt.isoformat(),
+        photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
+        documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
+        mobileNumber=profile.mobileNumber if show_phone else None
+    )
