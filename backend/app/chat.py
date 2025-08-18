@@ -242,3 +242,63 @@ async def mark_message_as_read(message_id: str, current_user = Depends(get_curre
         )
     
     return {"message": "Message marked as read"}
+
+@router.get("/unread-count")
+async def get_unread_count(current_user = Depends(get_current_user)):
+    unread_count = await db.message.count(
+        where={
+            "conversation": {
+                "OR": [
+                    {"aUserId": current_user.id},
+                    {"bUserId": current_user.id}
+                ]
+            },
+            "senderId": {"not": current_user.id},
+            "readAt": None
+        }
+    )
+    
+    return {"unreadCount": unread_count}
+
+class BlockUserRequest(BaseModel):
+    user_id: str
+
+@router.post("/block-user")
+async def block_user(request: BlockUserRequest, current_user = Depends(get_current_user)):
+    existing_interest = await db.interest.find_first(
+        where={
+            "OR": [
+                {"fromUserId": current_user.id, "toUserId": request.user_id},
+                {"fromUserId": request.user_id, "toUserId": current_user.id}
+            ]
+        }
+    )
+    
+    if existing_interest:
+        await db.interest.update(
+            where={"id": existing_interest.id},
+            data={"status": "BLOCKED"}
+        )
+    else:
+        await db.interest.create(
+            data={
+                "fromUserId": current_user.id,
+                "toUserId": request.user_id,
+                "status": "BLOCKED"
+            }
+        )
+    
+    return {"message": "User blocked successfully"}
+
+@router.post("/unblock-user")
+async def unblock_user(user_id: str, current_user = Depends(get_current_user)):
+    await db.interest.delete_many(
+        where={
+            "OR": [
+                {"fromUserId": current_user.id, "toUserId": user_id, "status": "BLOCKED"},
+                {"fromUserId": user_id, "toUserId": current_user.id, "status": "BLOCKED"}
+            ]
+        }
+    )
+    
+    return {"message": "User unblocked successfully"}

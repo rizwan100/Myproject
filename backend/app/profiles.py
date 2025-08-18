@@ -372,15 +372,23 @@ async def get_profile_by_name(
     
     has_mutual_interest = False
     if current_user:
-        mutual_interest = await db.interest.find_first(
+        interest_from_current = await db.interest.find_first(
             where={
-                "OR": [
-                    {"fromUserId": current_user.id, "toUserId": profile.userId, "status": "ACCEPTED"},
-                    {"fromUserId": profile.userId, "toUserId": current_user.id, "status": "ACCEPTED"}
-                ]
+                "fromUserId": current_user.id,
+                "toUserId": profile.userId,
+                "status": "ACCEPTED"
             }
         )
-        has_mutual_interest = mutual_interest is not None
+        
+        interest_to_current = await db.interest.find_first(
+            where={
+                "fromUserId": profile.userId,
+                "toUserId": current_user.id,
+                "status": "ACCEPTED"
+            }
+        )
+        
+        has_mutual_interest = interest_from_current is not None and interest_to_current is not None
     
     return ProfileResponse(
         id=profile.id,
