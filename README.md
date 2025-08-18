@@ -519,6 +519,496 @@ POST /uploads/documents      # Upload documents
 
 ## 🚀 Deployment
 
+### AWS EC2 Deployment Guide
+
+This comprehensive guide covers deploying the Aasan Rishte matrimonial web application on an AWS EC2 instance.
+
+#### Prerequisites
+- AWS Account with EC2 access
+- Domain name (optional but recommended)
+- Basic knowledge of Linux commands
+
+#### Step 1: Launch EC2 Instance
+
+1. **Launch Instance**
+   ```bash
+   # Recommended instance type: t3.medium or larger
+   # Operating System: Ubuntu 22.04 LTS
+   # Storage: 20GB+ SSD
+   # Security Group: Allow HTTP (80), HTTPS (443), SSH (22), Custom (3000, 8000)
+   ```
+
+2. **Connect to Instance**
+   ```bash
+   # Replace with your key file and instance IP
+   ssh -i your-key.pem ubuntu@your-ec2-ip
+   ```
+
+#### Step 2: Server Setup
+
+1. **Update System**
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
+
+2. **Install Required Software**
+   ```bash
+   # Install Node.js 20
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   
+   # Install Python 3.12
+   sudo apt install -y python3.12 python3.12-venv python3-pip
+   
+   # Install PostgreSQL
+   sudo apt install -y postgresql postgresql-contrib
+   
+   # Install Nginx (reverse proxy)
+   sudo apt install -y nginx
+   
+   # Install PM2 (process manager)
+   sudo npm install -g pm2 pnpm
+   
+   # Install Poetry
+   curl -sSL https://install.python-poetry.org | python3 -
+   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+3. **Configure PostgreSQL**
+   ```bash
+   # Start PostgreSQL
+   sudo systemctl start postgresql
+   sudo systemctl enable postgresql
+   
+   # Create database and user
+   sudo -u postgres psql
+   CREATE DATABASE matrimonial_db;
+   CREATE USER matrimonial_user WITH PASSWORD 'your_secure_password';
+   GRANT ALL PRIVILEGES ON DATABASE matrimonial_db TO matrimonial_user;
+   \q
+   ```
+
+#### Step 3: Deploy Application
+
+1. **Clone Repository**
+   ```bash
+   cd /home/ubuntu
+   git clone https://github.com/rizwan100/Myproject.git
+   cd Myproject
+   ```
+
+2. **Setup Backend**
+   ```bash
+   cd backend
+   
+   # Install dependencies
+   poetry install --only=main
+   
+   # Create production environment file
+   cat > .env << EOF
+   DATABASE_URL="postgresql://matrimonial_user:your_secure_password@localhost:5432/matrimonial_db"
+   JWT_SECRET="$(openssl rand -hex 32)"
+   JWT_ALGORITHM="HS256"
+   JWT_EXPIRATION_HOURS=24
+   SMTP_HOST="smtp.gmail.com"
+   SMTP_PORT=587
+   SMTP_USERNAME="aasanrishtecontact@gmail.com"
+   SMTP_PASSWORD="your_gmail_app_password"
+   SMTP_FROM_EMAIL="aasanrishtecontact@gmail.com"
+   APP_NAME="Aasan Rishte"
+   APP_URL="https://yourdomain.com"
+   API_URL="https://yourdomain.com/api"
+   UPLOAD_DIR="uploads"
+   MAX_FILE_SIZE=5242880
+   EOF
+   
+   # Setup database
+   poetry run prisma generate
+   poetry run prisma db push
+   
+   # Create admin user
+   cd ..
+   python3 create_admin.py
+   ```
+
+3. **Setup Frontend**
+   ```bash
+   cd frontend
+   
+   # Install dependencies
+   pnpm install
+   
+   # Create production environment file
+   cat > .env.local << EOF
+   NEXT_PUBLIC_API_URL=https://yourdomain.com/api
+   NEXT_PUBLIC_APP_NAME="Aasan Rishte"
+   EOF
+   
+   # Build for production
+   pnpm build
+   ```
+
+#### Step 4: Configure Process Management
+
+1. **Create PM2 Ecosystem File**
+   ```bash
+   cd /home/ubuntu/Myproject
+   cat > ecosystem.config.js << EOF
+   module.exports = {
+     apps: [
+       {
+         name: 'aasan-rishte-backend',
+         cwd: './backend',
+         script: 'poetry',
+         args: 'run uvicorn app.main:app --host 0.0.0.0 --port 8000',
+         env: {
+           NODE_ENV: 'production'
+         },
+         error_file: './logs/backend-error.log',
+         out_file: './logs/backend-out.log',
+         log_file: './logs/backend-combined.log',
+         time: true
+       },
+       {
+         name: 'aasan-rishte-frontend',
+         cwd: './frontend',
+         script: 'pnpm',
+         args: 'start',
+         env: {
+           NODE_ENV: 'production',
+           PORT: 3000
+         },
+         error_file: './logs/frontend-error.log',
+         out_file: './logs/frontend-out.log',
+         log_file: './logs/frontend-combined.log',
+         time: true
+       }
+     ]
+   };
+   EOF
+   
+   # Create logs directory
+   mkdir -p logs
+   ```
+
+2. **Start Applications with PM2**
+   ```bash
+   # Start applications
+   pm2 start ecosystem.config.js
+   
+   # Save PM2 configuration
+   pm2 save
+   
+   # Setup PM2 to start on boot
+   pm2 startup
+   # Follow the instructions provided by the command above
+   ```
+
+#### Step 5: Configure Nginx Reverse Proxy
+
+1. **Create Nginx Configuration**
+   ```bash
+   sudo tee /etc/nginx/sites-available/aasan-rishte << EOF
+   server {
+       listen 80;
+       server_name yourdomain.com www.yourdomain.com;
+   
+       # Redirect HTTP to HTTPS
+       return 301 https://\$server_name\$request_uri;
+   }
+   
+   server {
+       listen 443 ssl http2;
+       server_name yourdomain.com www.yourdomain.com;
+   
+       # SSL Configuration (add your SSL certificates)
+       ssl_certificate /etc/ssl/certs/your-cert.pem;
+       ssl_certificate_key /etc/ssl/private/your-key.pem;
+       ssl_protocols TLSv1.2 TLSv1.3;
+       ssl_ciphers HIGH:!aNULL:!MD5;
+   
+       # Frontend (Next.js)
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade \$http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host \$host;
+           proxy_set_header X-Real-IP \$remote_addr;
+           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto \$scheme;
+           proxy_cache_bypass \$http_upgrade;
+       }
+   
+       # Backend API (FastAPI)
+       location /api/ {
+           proxy_pass http://localhost:8000/;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade \$http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host \$host;
+           proxy_set_header X-Real-IP \$remote_addr;
+           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto \$scheme;
+           proxy_cache_bypass \$http_upgrade;
+       }
+   
+       # File uploads
+       client_max_body_size 10M;
+   
+       # Security headers
+       add_header X-Frame-Options "SAMEORIGIN" always;
+       add_header X-XSS-Protection "1; mode=block" always;
+       add_header X-Content-Type-Options "nosniff" always;
+       add_header Referrer-Policy "no-referrer-when-downgrade" always;
+       add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+   }
+   EOF
+   
+   # Enable the site
+   sudo ln -s /etc/nginx/sites-available/aasan-rishte /etc/nginx/sites-enabled/
+   
+   # Remove default site
+   sudo rm -f /etc/nginx/sites-enabled/default
+   
+   # Test configuration
+   sudo nginx -t
+   
+   # Restart Nginx
+   sudo systemctl restart nginx
+   sudo systemctl enable nginx
+   ```
+
+#### Step 6: SSL Certificate Setup
+
+1. **Using Let's Encrypt (Free SSL)**
+   ```bash
+   # Install Certbot
+   sudo apt install -y certbot python3-certbot-nginx
+   
+   # Get SSL certificate
+   sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+   
+   # Auto-renewal setup
+   sudo crontab -e
+   # Add this line:
+   # 0 12 * * * /usr/bin/certbot renew --quiet
+   ```
+
+2. **Using Custom SSL Certificate**
+   ```bash
+   # Upload your certificate files to:
+   # /etc/ssl/certs/your-cert.pem
+   # /etc/ssl/private/your-key.pem
+   
+   # Set proper permissions
+   sudo chmod 644 /etc/ssl/certs/your-cert.pem
+   sudo chmod 600 /etc/ssl/private/your-key.pem
+   ```
+
+#### Step 7: Configure Firewall
+
+```bash
+# Enable UFW firewall
+sudo ufw enable
+
+# Allow necessary ports
+sudo ufw allow ssh
+sudo ufw allow 'Nginx Full'
+
+# Check status
+sudo ufw status
+```
+
+#### Step 8: Database Backup Setup
+
+```bash
+# Create backup script
+sudo tee /usr/local/bin/backup-db.sh << EOF
+#!/bin/bash
+BACKUP_DIR="/home/ubuntu/backups"
+DATE=\$(date +%Y%m%d_%H%M%S)
+mkdir -p \$BACKUP_DIR
+
+# Backup database
+pg_dump -h localhost -U matrimonial_user -d matrimonial_db > \$BACKUP_DIR/matrimonial_db_\$DATE.sql
+
+# Keep only last 7 days of backups
+find \$BACKUP_DIR -name "matrimonial_db_*.sql" -mtime +7 -delete
+EOF
+
+# Make executable
+sudo chmod +x /usr/local/bin/backup-db.sh
+
+# Setup daily backup cron job
+sudo crontab -e
+# Add this line:
+# 0 2 * * * /usr/local/bin/backup-db.sh
+```
+
+#### Step 9: Monitoring and Logs
+
+1. **PM2 Monitoring**
+   ```bash
+   # View application status
+   pm2 status
+   
+   # View logs
+   pm2 logs
+   
+   # Monitor in real-time
+   pm2 monit
+   ```
+
+2. **System Monitoring**
+   ```bash
+   # Install htop for system monitoring
+   sudo apt install -y htop
+   
+   # Check disk usage
+   df -h
+   
+   # Check memory usage
+   free -h
+   ```
+
+3. **Log Management**
+   ```bash
+   # Setup log rotation
+   sudo tee /etc/logrotate.d/aasan-rishte << EOF
+   /home/ubuntu/Myproject/logs/*.log {
+       daily
+       missingok
+       rotate 14
+       compress
+       delaycompress
+       notifempty
+       create 644 ubuntu ubuntu
+       postrotate
+           pm2 reloadLogs
+       endscript
+   }
+   EOF
+   ```
+
+#### Step 10: Deployment Commands
+
+1. **Initial Deployment**
+   ```bash
+   # Complete setup script
+   cd /home/ubuntu/Myproject
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
+
+2. **Update Deployment**
+   ```bash
+   # Pull latest changes
+   git pull origin main
+   
+   # Update backend
+   cd backend
+   poetry install --only=main
+   poetry run prisma generate
+   poetry run prisma db push
+   
+   # Update frontend
+   cd ../frontend
+   pnpm install
+   pnpm build
+   
+   # Restart applications
+   cd ..
+   pm2 restart all
+   ```
+
+#### Step 11: Domain Configuration
+
+1. **DNS Setup**
+   - Point your domain's A record to your EC2 instance's public IP
+   - Add CNAME record for www subdomain
+   - Wait for DNS propagation (up to 24 hours)
+
+2. **Update Environment Variables**
+   ```bash
+   # Update backend .env
+   sed -i 's|APP_URL=.*|APP_URL="https://yourdomain.com"|' backend/.env
+   sed -i 's|API_URL=.*|API_URL="https://yourdomain.com/api"|' backend/.env
+   
+   # Update frontend .env.local
+   sed -i 's|NEXT_PUBLIC_API_URL=.*|NEXT_PUBLIC_API_URL=https://yourdomain.com/api|' frontend/.env.local
+   
+   # Rebuild and restart
+   cd frontend && pnpm build && cd ..
+   pm2 restart all
+   ```
+
+#### Troubleshooting
+
+1. **Application Not Starting**
+   ```bash
+   # Check PM2 logs
+   pm2 logs
+   
+   # Check individual app logs
+   pm2 logs aasan-rishte-backend
+   pm2 logs aasan-rishte-frontend
+   ```
+
+2. **Database Connection Issues**
+   ```bash
+   # Check PostgreSQL status
+   sudo systemctl status postgresql
+   
+   # Test database connection
+   psql -h localhost -U matrimonial_user -d matrimonial_db
+   ```
+
+3. **Nginx Issues**
+   ```bash
+   # Check Nginx status
+   sudo systemctl status nginx
+   
+   # Check Nginx logs
+   sudo tail -f /var/log/nginx/error.log
+   ```
+
+4. **SSL Certificate Issues**
+   ```bash
+   # Check certificate status
+   sudo certbot certificates
+   
+   # Renew certificate manually
+   sudo certbot renew
+   ```
+
+#### Security Best Practices
+
+1. **Server Security**
+   ```bash
+   # Disable root login
+   sudo sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+   
+   # Change SSH port (optional)
+   sudo sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config
+   
+   # Restart SSH
+   sudo systemctl restart ssh
+   ```
+
+2. **Application Security**
+   - Use strong passwords for database and admin accounts
+   - Regularly update dependencies
+   - Monitor application logs for suspicious activity
+   - Implement rate limiting in Nginx if needed
+
+3. **Backup Strategy**
+   - Regular database backups
+   - Application code backups
+   - SSL certificate backups
+   - Environment configuration backups
+
 ### Backend Deployment (Railway/Render/Fly.io)
 ```bash
 # Build command
