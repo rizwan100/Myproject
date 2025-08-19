@@ -10,7 +10,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function TermsConditionsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white">
+    <div className=min-h-screen bg-gradient-to-b from-rose-50 to-white>
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,11 +54,11 @@ export default function TermsConditionsPage() {
           <CardContent className="prose prose-gray max-w-none">
             <div className="space-y-6 text-sm leading-relaxed">
               <p>
-                The terms "We" / "Us" / "Our"/"Company" individually and collectively refer to Aasan Rishte and the terms "Visitor" "User" refer to the users.
+                The terms We / Us / Our/Company individually and collectively refer to Aasan Rishte and the terms Visitor User refer to the users.
               </p>
 
               <p>
-                This page states the Terms and Conditions under which you (Visitor) may visit this website Aasan Rishte ("Website"). Please read this page carefully. If you do not accept the Terms and Conditions stated here, we would request you to exit this site. The business, any of its business divisions and / or its subsidiaries, associate companies or subsidiaries to subsidiaries or such other investment companies (in India or abroad) reserve their respective rights to revise these Terms and Conditions at any time by updating this posting. You should visit this page periodically to re-appraise yourself of the Terms and Conditions, because they are binding on all users of this Website.
+                This page states the Terms and Conditions under which you (Visitor) may visit this website Aasan Rishte (Website). Please read this page carefully. If you do not accept the Terms and Conditions stated here, we would request you to exit this site. The business, any of its business divisions and / or its subsidiaries, associate companies or subsidiaries to subsidiaries or such other investment companies (in India or abroad) reserve their respective rights to revise these Terms and Conditions at any time by updating this posting. You should visit this page periodically to re-appraise yourself of the Terms and Conditions, because they are binding on all users of this Website.
               </p>
 
               <h3 className="text-lg font-semibold text-gray-900 mt-8 mb-4">USE OF CONTENT</h3>
@@ -74,10 +74,10 @@ export default function TermsConditionsPage() {
               
               <h4 className="text-base font-semibold text-gray-900 mt-6 mb-3">(A) Security Rules</h4>
               <p>
-                Visitors are prohibited from violating or attempting to violate the security of the Web site, including, without limitation, (1) accessing data not intended for such user or logging into a server or account which the user is not authorized to access, (2) attempting to probe, scan or test the vulnerability of a system or network or to breach security or authentication measures without proper authorization, (3) attempting to interfere with service to any user, host or network, including, without limitation, via means of submitting a virus or "Trojan horse" to the Website, overloading, "flooding", "mail bombing" or "crashing", or (4) sending unsolicited electronic mail, including promotions and/or advertising of products or services. Violations of system or network security may result in civil or criminal liability. The business and / or its associate entities will have the right to investigate occurrences that they suspect as involving such violations and will have the right to involve, and cooperate with, law enforcement authorities in prosecuting users who are involved in such violations.
+                Visitors are prohibited from violating or attempting to violate the security of the Web site, including, without limitation, (1) accessing data not intended for such user or logging into a server or account which the user is not authorized to access, (2) attempting to probe, scan or test the vulnerability of a system or network or to breach security or authentication measures without proper authorization, (3) attempting to interfere with service to any user, host or network, including, without limitation, via means of submitting a virus or &quot;Trojan horse&quot; to the Website, overloading, flooding, mail bombing or crashing, or (4) sending unsolicited electronic mail, including promotions and/or advertising of products or services. Violations of system or network security may result in civil or criminal liability. The business and / or its associate entities will have the right to investigate occurrences that they suspect as involving such violations and will have the right to involve, and cooperate with, law enforcement authorities in prosecuting users who are involved in such violations.
               </p>
 
-              <h4 className="text-base font-semibold text-gray-900 mt-6 mb-3">(B) General Rules</h4>
+              <h4 className=text-base font-semibold text-gray-900 mt-6 mb-3>(B) General Rules</h4>
               <p>
                 Visitors may not use the Web Site in order to transmit, distribute, store or destroy material (a) that could constitute or encourage conduct that would be considered a criminal offence or violate any applicable law or regulation, (b) in a manner that will infringe the copyright, trademark, trade secret or other intellectual property rights of others or violate the privacy or publicity of other personal rights of others, or (c) that is libellous, defamatory, pornographic, profane, obscene, threatening, abusive or hateful.
               </p>
