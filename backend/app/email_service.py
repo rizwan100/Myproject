@@ -1,5 +1,7 @@
 import os
-import resend
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -10,15 +12,19 @@ class EmailService:
     def send_verification_email(email: str, verification_token: str, user_name: str = "User") -> bool:
         """Send email verification email to user"""
         try:
-            resend_api_key = os.getenv("RESEND_API_KEY")
+            email_host = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+            email_port = int(os.getenv("EMAIL_PORT", "587"))
+            email_user = os.getenv("EMAIL_USER", "aasanrishtecontact@gmail.com")
+            email_password = os.getenv("EMAIL_PASSWORD")
+            email_from = os.getenv("EMAIL_FROM", "aasanrishtecontact@gmail.com")
+            app_url = os.getenv("APP_URL", "http://localhost:3000")
             
-            if not resend_api_key or resend_api_key == "your-resend-api-key":
+            if not email_password or email_password == "your-email-password":
                 print(f"Development mode: Simulating email send to {email}")
-                print(f"Verification URL: http://localhost:3000/verify-email?token={verification_token}")
+                print(f"Verification URL: {app_url}/verify-email?token={verification_token}")
                 return True
             
-            resend.api_key = resend_api_key
-            verification_url = f"http://localhost:3000/verify-email?token={verification_token}"
+            verification_url = f"{app_url}/verify-email?token={verification_token}"
             
             html_content = f"""
             <!DOCTYPE html>
@@ -67,14 +73,22 @@ class EmailService:
             </html>
             """
             
-            params = {
-                "from": "Aasan Rishte <aasanrishtecontact@gmail.com>",
-                "to": [email],
-                "subject": "Verify Your Email - Welcome to Aasan Rishte",
-                "html": html_content,
-            }
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = "Verify Your Email - Welcome to Aasan Rishte"
+            msg['From'] = f"Aasan Rishte <{email_from}>"
+            msg['To'] = email
             
-            email_response = resend.Emails.send(params)
+            html_part = MIMEText(html_content, 'html')
+            msg.attach(html_part)
+            
+            server = smtplib.SMTP(email_host, email_port)
+            server.starttls()
+            server.login(email_user, email_password)
+            text = msg.as_string()
+            server.sendmail(email_from, email, text)
+            server.quit()
+            
+            print(f"Verification email sent successfully to {email}")
             return True
             
         except Exception as e:
