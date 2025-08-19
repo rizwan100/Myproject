@@ -11,6 +11,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white">
+      
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b">
         <div className=max-w-7xl mx-auto px-4 sm:px-6 lg:px-8>
