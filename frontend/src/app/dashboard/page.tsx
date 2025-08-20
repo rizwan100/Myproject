@@ -46,7 +46,7 @@ export default function DashboardPage() {
   
   const checkUserProfile = async (token: string, userId: string) => {
     try {
-      const response = await fetch(`https://myproject-228802607375.asia-south1.run.app/profiles/user/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles/user/${userId}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       
@@ -60,7 +60,7 @@ export default function DashboardPage() {
 
   const fetchUnreadCount = async (token: string) => {
     try {
-      const response = await fetch("https://myproject-228802607375.asia-south1.run.app/chat/unread-count", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/unread-count`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (response.ok) {

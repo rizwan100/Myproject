@@ -30,13 +30,13 @@ export default function Home() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const groomResponse = await fetch("https://myproject-228802607375.asia-south1.run.app/profiles?lookingFor=GROOM");
+        const groomResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles?lookingFor=GROOM`);
         if (groomResponse.ok) {
           const grooms = await groomResponse.json();
           setGroomProfiles(grooms.slice(0, 6)); // Show latest 6
         }
 
-        const brideResponse = await fetch("https://myproject-228802607375.asia-south1.run.app/profiles?lookingFor=BRIDE");
+        const brideResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles?lookingFor=BRIDE`);
         if (brideResponse.ok) {
           const brides = await brideResponse.json();
           setBrideProfiles(brides.slice(0, 6)); // Show latest 6

@@ -13,14 +13,14 @@ steps:
     - '--image'
     - 'gcr.io/$PROJECT_ID/aasan-rishte-backend'
     - '--region'
-    - 'us-central1'
+    - 'asia-south1'
     - '--platform'
     - 'managed'
     - '--allow-unauthenticated'
     - '--set-env-vars'
     - 'DATABASE_URL=$$DATABASE_URL,JWT_SECRET=$$JWT_SECRET,EMAIL_HOST=$$EMAIL_HOST,EMAIL_PORT=$$EMAIL_PORT,EMAIL_USER=$$EMAIL_USER,EMAIL_PASSWORD=$$EMAIL_PASSWORD'
     - '--add-cloudsql-instances'
-    - '$PROJECT_ID:us-central1:aasan-rishte-db'
+    - '$PROJECT_ID:asia-south1:aasan-rishte-db'
     secretEnv: ['DATABASE_URL', 'JWT_SECRET', 'EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_USER', 'EMAIL_PASSWORD']
 
 availableSecrets:

@@ -92,7 +92,7 @@ export default function CreateProfilePage() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("https://myproject-228802607375.asia-south1.run.app/profiles", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,7 +111,7 @@ export default function CreateProfilePage() {
         
         if (biodata) {
           const token = localStorage.getItem("token");
-          const uploadResponse = await fetch(`https://myproject-228802607375.asia-south1.run.app/upload/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
+          const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${token}`,
