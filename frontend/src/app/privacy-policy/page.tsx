@@ -11,6 +11,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white">
+      
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,7 +55,7 @@ export default function PrivacyPolicyPage() {
           <CardContent className="prose prose-gray max-w-none">
             <div className="space-y-6 text-sm leading-relaxed">
               <p>
-                The terms "We" / "Us" / "Our"/"Company" individually and collectively refer to Aasan Rishte and the terms "You" /"Your" / "Yourself" refer to the users.
+                The terms &quot;We&quot; / &quot;Us&quot; / &quot;Our&quot;/&quot;Company&quot; individually and collectively refer to Aasan Rishte and the terms &quot;You&quot; /&quot;Your&quot; / &quot;Yourself&quot; refer to the users.
               </p>
 
               <p>
@@ -66,7 +67,7 @@ export default function PrivacyPolicyPage() {
               </p>
 
               <p>
-                This Privacy Policy is a legally binding document between you and Aasan Rishte. (both terms defined below). The terms of this Privacy Policy will be effective upon your acceptance of the same (directly or indirectly in electronic form, by clicking on the I accept tab or by use of the website or by other means) and will govern the relationship between you and Aasan Rishte for your use of the website "Website" (defined below).
+                This Privacy Policy is a legally binding document between you and Aasan Rishte. (both terms defined below). The terms of this Privacy Policy will be effective upon your acceptance of the same (directly or indirectly in electronic form, by clicking on the I accept tab or by use of the website or by other means) and will govern the relationship between you and Aasan Rishte for your use of the website &quot;Website&quot; (defined below).
               </p>
 
               <p>
@@ -96,7 +97,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="text-lg font-semibold text-gray-900 mt-8 mb-4">COOKIES</h3>
               <p>
-                To improve the responsiveness of the sites for our users, we may use "cookies", or similar electronic tools to collect information to assign each visitor a unique, random number as a User Identification (User ID) to understand the user's individual interests using the Identified Computer. Unless you voluntarily identify yourself (through registration, for example), we will have no way of knowing who you are, even if we assign a cookie to your computer. The only personal information a cookie can contain is information you supply (an example of this is when you ask for our Personalised Horoscope). A cookie cannot read data off your hard drive. Our advertisers may also assign their own cookies to your browser (if you click on their ads), a process that we do not control.
+                To improve the responsiveness of the sites for our users, we may use &quot;cookies&quot;, or similar electronic tools to collect information to assign each visitor a unique, random number as a User Identification (User ID) to understand the user's individual interests using the Identified Computer. Unless you voluntarily identify yourself (through registration, for example), we will have no way of knowing who you are, even if we assign a cookie to your computer. The only personal information a cookie can contain is information you supply (an example of this is when you ask for our Personalised Horoscope). A cookie cannot read data off your hard drive. Our advertisers may also assign their own cookies to your browser (if you click on their ads), a process that we do not control.
               </p>
 
               <p>
@@ -134,7 +135,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="text-lg font-semibold text-gray-900 mt-8 mb-4">Grievance Redressal</h3>
               <p>
-                Redressal Mechanism: Any complaints, abuse or concerns with regards to content and or comment or breach of these terms shall be immediately informed to the designated Grievance Officer as mentioned below via in writing or through email signed with the electronic signature to aasanrishtecontact@gmail.com ("Grievance Officer").
+                Redressal Mechanism: Any complaints, abuse or concerns with regards to content and or comment or breach of these terms shall be immediately informed to the designated Grievance Officer as mentioned below via in writing or through email signed with the electronic signature to aasanrishtecontact@gmail.com (&quot;Grievance Officer&quot;).
               </p>
 
               <div className="mt-8 p-4 bg-rose-50 rounded-lg">

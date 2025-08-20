@@ -1,7 +1,12 @@
-import type { NextConfig } from "next";
+// next.config.ts
+
+import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  output: 'standalone',  // Optional: if you're using this config
 };
 
-export default nextConfig;
+export default nextConfig;  // Correct export

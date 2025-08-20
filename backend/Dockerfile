@@ -19,7 +19,7 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false
 
 # Install dependencies
-RUN poetry install --no-dev
+RUN poetry install --only main
 
 # Copy application code
 COPY . .
@@ -28,7 +28,7 @@ COPY . .
 RUN poetry run prisma generate
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
