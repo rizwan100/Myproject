@@ -2,10 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-   eslint: {
+  module.exports = {
+  eslint: {
     ignoreDuringBuilds: true,
   },
-  module.exports = {
   output: 'standalone',
 };
 
