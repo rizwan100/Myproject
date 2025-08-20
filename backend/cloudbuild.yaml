@@ -9,7 +9,7 @@ steps:
     args:
     - 'run'
     - 'deploy'
-    - 'aasan-rishte-backend'
+    - 'myproject'
     - '--image'
     - 'gcr.io/$PROJECT_ID/aasan-rishte-backend'
     - '--region'
