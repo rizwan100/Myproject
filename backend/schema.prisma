@@ -76,6 +76,8 @@ enum InterestStatus {
 
 enum DocumentType {
   BIODATA_PDF
+  BIODATA_DOC
+  BIODATA_DOCX
 }
 
 model User {
@@ -103,12 +105,12 @@ model Profile {
   userId                String             @unique
   createdBy             String
   name                  String
-  gender                Gender
+  gender                String
   dob                   DateTime
   age                   Int
-  maritalStatus         MaritalStatus
-  noOfChildren          Int                @default(0)
-  childrenLivingStatus  ChildrenLivingStatus?
+  maritalStatus         String
+  noOfChildren          String
+  childrenLivingStatus  String
   motherTongue          String
   religion              String
   caste                 String
@@ -119,16 +121,17 @@ model Profile {
   countryCode           String
   landline              String?
   mobileNumber          String
-  food                  Food
-  complexion            Complexion
-  bodyType              BodyType
+  hidePhoneNumber       Boolean            @default(false)
+  food                  String
+  complexion            String
+  bodyType              String
   heightCm              Int
   weightKg              Int
-  physicalStatus        PhysicalStatus
+  physicalStatus        String
   bloodGroup            String
   educationQualification String
   occupation            String
-  employmentType        EmploymentType
+  employmentType        String
   annualIncomeCurrency  String
   annualIncome          Int
   aboutMe               String

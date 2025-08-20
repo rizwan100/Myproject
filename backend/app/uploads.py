@@ -45,7 +45,7 @@ async def create_presigned_post(
         allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
         max_size = 5 * 1024 * 1024  # 5MB
     else:  # document
-        allowed_types = ["application/pdf"]
+        allowed_types = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
         max_size = 2 * 1024 * 1024  # 2MB
     
     if content_type not in allowed_types:
@@ -77,7 +77,7 @@ async def create_presigned_post(
                 data={
                     "profileId": user_profile.id,
                     "url": mock_url,
-                    "type": "BIODATA_PDF"
+                    "type": "BIODATA_PDF" if content_type == "application/pdf" else ("BIODATA_DOC" if content_type == "application/msword" else "BIODATA_DOCX")
                 }
             )
         
@@ -125,7 +125,7 @@ async def create_presigned_post(
                 data={
                     "profileId": user_profile.id,
                     "url": file_url,
-                    "type": "BIODATA_PDF"
+                    "type": "BIODATA_PDF" if content_type == "application/pdf" else ("BIODATA_DOC" if content_type == "application/msword" else "BIODATA_DOCX")
                 }
             )
         

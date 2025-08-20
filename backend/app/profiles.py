@@ -16,13 +16,13 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 
 class ProfileCreate(BaseModel):
     createdBy: str
+    motherTongue: str
     name: str
     gender: str
     dob: date
     maritalStatus: str
-    noOfChildren: int = 0
-    childrenLivingStatus: Optional[str] = None
-    motherTongue: str
+    noOfChildren: str
+    childrenLivingStatus: str
     religion: str
     caste: str
     citizenship: str
@@ -32,6 +32,7 @@ class ProfileCreate(BaseModel):
     countryCode: str
     landline: Optional[str] = None
     mobileNumber: str
+    hidePhoneNumber: Optional[bool] = False
     food: str
     complexion: str
     bodyType: str
@@ -90,6 +91,7 @@ async def create_profile(profile_data: ProfileCreate, current_user = Depends(get
         data={
             "userId": current_user.id,
             "createdBy": profile_data.createdBy,
+            "motherTongue": profile_data.motherTongue,
             "name": profile_data.name,
             "gender": profile_data.gender,
             "dob": profile_data.dob,
@@ -97,7 +99,6 @@ async def create_profile(profile_data: ProfileCreate, current_user = Depends(get
             "maritalStatus": profile_data.maritalStatus,
             "noOfChildren": profile_data.noOfChildren,
             "childrenLivingStatus": profile_data.childrenLivingStatus,
-            "motherTongue": profile_data.motherTongue,
             "religion": profile_data.religion,
             "caste": profile_data.caste,
             "citizenship": profile_data.citizenship,
@@ -107,6 +108,7 @@ async def create_profile(profile_data: ProfileCreate, current_user = Depends(get
             "countryCode": profile_data.countryCode,
             "landline": profile_data.landline,
             "mobileNumber": profile_data.mobileNumber,
+            "hidePhoneNumber": profile_data.hidePhoneNumber,
             "food": profile_data.food,
             "complexion": profile_data.complexion,
             "bodyType": profile_data.bodyType,
@@ -120,6 +122,7 @@ async def create_profile(profile_data: ProfileCreate, current_user = Depends(get
             "annualIncomeCurrency": profile_data.annualIncomeCurrency,
             "annualIncome": profile_data.annualIncome,
             "aboutMe": profile_data.aboutMe,
+            "approved": True
         },
         include={"photos": True, "documents": True}
     )
@@ -286,7 +289,7 @@ async def get_profiles(
             createdAt=profile.createdAt.isoformat(),
             photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
             documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
-            mobileNumber=profile.mobileNumber if has_mutual_interest(profile.userId) else None
+            mobileNumber=profile.mobileNumber if (not profile.hidePhoneNumber and current_user) or has_mutual_interest(profile.userId) else ("Hidden" if profile.hidePhoneNumber else None)
         )
         for profile in profiles
     ]
@@ -347,7 +350,7 @@ async def get_profile(profile_id: str, current_user = Depends(get_current_user))
         createdAt=profile.createdAt.isoformat(),
         photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
         documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
-        mobileNumber=profile.mobileNumber if show_phone else None
+        mobileNumber=profile.mobileNumber if (not getattr(profile, 'hidePhoneNumber', False) and show_phone) else ("Hidden" if getattr(profile, 'hidePhoneNumber', False) else None)
     )
 
 
@@ -415,6 +418,6 @@ async def get_profile_by_name(
         createdAt=profile.createdAt.isoformat(),
         photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
         documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
-        mobileNumber=profile.mobileNumber if show_phone else None,
+        mobileNumber=profile.mobileNumber if (not profile.hidePhoneNumber and show_phone) else ("Hidden" if profile.hidePhoneNumber else None),
         hasMutualInterest=has_mutual_interest
     )
