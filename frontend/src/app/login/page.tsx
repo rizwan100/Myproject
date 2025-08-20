@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import DonateButton from "@/components/DonateButton";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -39,7 +40,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/login", {
+      const response = await fetch("https://myproject-228802607375.asia-south1.run.app/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,6 +95,7 @@ export default function LoginPage() {
               <Link href="/login" className="text-rose-600 font-medium">
                 Login
               </Link>
+              <DonateButton size="sm" />
             </div>
             <div className="flex items-center gap-4">
               <Button asChild className="hidden sm:inline-flex bg-rose-600 hover:bg-rose-700">

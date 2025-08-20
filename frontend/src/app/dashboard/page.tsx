@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { User, Search, MessageCircle, LogOut, Menu, X } from "lucide-react";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Logo from "@/components/Logo";
+import DonateButton from "@/components/DonateButton";
 
 interface User {
   id: string;
@@ -32,17 +33,34 @@ export default function DashboardPage() {
     }
 
     try {
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
       fetchUnreadCount(token);
+      
+      checkUserProfile(token, parsedUser.id);
     } catch (error) {
       console.error("Error parsing user data:", error);
       router.push("/login");
     }
   }, [router]);
+  
+  const checkUserProfile = async (token: string, userId: string) => {
+    try {
+      const response = await fetch(`https://myproject-228802607375.asia-south1.run.app/profiles/user/${userId}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      
+      if (response.status === 404) {
+        router.push("/profile/create");
+      }
+    } catch (error) {
+      console.error("Error checking user profile:", error);
+    }
+  };
 
   const fetchUnreadCount = async (token: string) => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/chat/unread-count", {
+      const response = await fetch("https://myproject-228802607375.asia-south1.run.app/chat/unread-count", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (response.ok) {
@@ -109,6 +127,7 @@ export default function DashboardPage() {
               <Link href="/settings" className="text-gray-700 hover:text-rose-600 font-medium">
                 Settings
               </Link>
+              <DonateButton size="sm" />
             </div>
             <div className="flex items-center gap-4">
               <Button onClick={handleLogout} variant="outline" className="hidden sm:inline-flex text-gray-700 hover:text-rose-600">

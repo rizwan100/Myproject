@@ -15,6 +15,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { Checkbox } from "@/components/ui/checkbox";
+import FileUpload from "./FileUpload";
 
 const profileSchema = z.object({
   createdBy: z.string().min(1, "Please select who created this profile"),
@@ -34,6 +36,7 @@ const profileSchema = z.object({
   countryCode: z.string().min(1, "Please enter country code"),
   landline: z.string().optional(),
   mobileNumber: z.string().min(10, "Please enter valid mobile number"),
+  hidePhoneNumber: z.boolean().default(false),
   food: z.string().min(1, "Please select food preference"),
   complexion: z.string().min(1, "Please select complexion"),
   bodyType: z.string().min(1, "Please select body type"),
@@ -83,11 +86,13 @@ export default function CreateProfilePage() {
     }
   }, [router]);
 
+  const [biodata, setBiodata] = useState<File | null>(null);
+  
   const onSubmit = async (data: ProfileForm) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/profiles", {
+      const response = await fetch("https://myproject-228802607375.asia-south1.run.app/profiles", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,6 +107,33 @@ export default function CreateProfilePage() {
       });
 
       if (response.ok) {
+        const profileData = await response.json();
+        
+        if (biodata) {
+          const token = localStorage.getItem("token");
+          const uploadResponse = await fetch(`https://myproject-228802607375.asia-south1.run.app/upload/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+          
+          if (uploadResponse.ok) {
+            const { url, fields, fileId } = await uploadResponse.json();
+            
+            const formData = new FormData();
+            Object.entries(fields).forEach(([key, value]) => {
+              formData.append(key, value as string);
+            });
+            formData.append("file", biodata);
+            
+            await fetch(url, {
+              method: "POST",
+              body: formData,
+            });
+          }
+        }
+        
         router.push("/dashboard");
       } else {
         const error = await response.json();
@@ -308,6 +340,22 @@ export default function CreateProfilePage() {
                     {errors.mobileNumber && (
                       <p className="text-sm text-red-500">{errors.mobileNumber.message}</p>
                     )}
+                    <div className="flex items-center space-x-2 mt-2">
+                      <Controller
+                        name="hidePhoneNumber"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            id="hidePhoneNumber"
+                          />
+                        )}
+                      />
+                      <Label htmlFor="hidePhoneNumber" className="text-sm text-gray-600">
+                        Hide my phone number from other users
+                      </Label>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -395,6 +443,17 @@ export default function CreateProfilePage() {
                     <p className="text-sm text-red-500">{errors.aboutMe.message}</p>
                   )}
                 </div>
+              </div>
+              
+              {/* Biodata Upload */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Upload Biodata</h3>
+                <FileUpload 
+                  onFileSelect={(file) => setBiodata(file)}
+                  acceptedTypes=".pdf,.doc,.docx"
+                  maxSize={2 * 1024 * 1024}
+                  label="Upload your biodata (PDF or Word document)"
+                />
               </div>
 
               {errors.root && (

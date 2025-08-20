@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, Search, MessageCircle, MapPin, Calendar, Phone, Mail, Menu, X, User } from "lucide-react";
 import Logo from "@/components/Logo";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import DonateButton from "@/components/DonateButton";
 
 interface Profile {
   id: string;
@@ -29,13 +30,13 @@ export default function Home() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const groomResponse = await fetch("http://127.0.0.1:8000/profiles?lookingFor=GROOM");
+        const groomResponse = await fetch("https://myproject-228802607375.asia-south1.run.app/profiles?lookingFor=GROOM");
         if (groomResponse.ok) {
           const grooms = await groomResponse.json();
           setGroomProfiles(grooms.slice(0, 6)); // Show latest 6
         }
 
-        const brideResponse = await fetch("http://127.0.0.1:8000/profiles?lookingFor=BRIDE");
+        const brideResponse = await fetch("https://myproject-228802607375.asia-south1.run.app/profiles?lookingFor=BRIDE");
         if (brideResponse.ok) {
           const brides = await brideResponse.json();
           setBrideProfiles(brides.slice(0, 6)); // Show latest 6
@@ -111,6 +112,7 @@ export default function Home() {
               <Link href="/login" className="text-gray-700 hover:text-rose-600 font-medium">
                 Login
               </Link>
+              <DonateButton size="sm" />
             </div>
             <div className="flex items-center gap-4">
               <Button asChild className="hidden sm:inline-flex bg-rose-600 hover:bg-rose-700">
@@ -267,7 +269,7 @@ export default function Home() {
             ) : (
               <Card>
                 <CardContent className="p-8 text-center text-gray-500">
-                  <Logo showText={false} size="lg" className="mx-auto mb-4 opacity-50" />
+                  <User className="h-16 w-16 mx-auto mb-4 opacity-50" />
                   <p>No groom profiles available yet</p>
                 </CardContent>
               </Card>
@@ -308,7 +310,7 @@ export default function Home() {
             ) : (
               <Card>
                 <CardContent className="p-8 text-center text-gray-500">
-                  <Logo showText={false} size="lg" className="mx-auto mb-4 opacity-50" />
+                  <User className="h-16 w-16 mx-auto mb-4 opacity-50" />
                   <p>No bride profiles available yet</p>
                 </CardContent>
               </Card>
