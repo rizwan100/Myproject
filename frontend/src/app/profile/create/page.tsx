@@ -36,7 +36,6 @@ const profileSchema = z.object({
   countryCode: z.string().min(1, "Please enter country code"),
   landline: z.string().optional(),
   mobileNumber: z.string().min(10, "Please enter valid mobile number"),
-  hidePhoneNumber: z.boolean().default(false),
   food: z.string().min(1, "Please select food preference"),
   complexion: z.string().min(1, "Please select complexion"),
   bodyType: z.string().min(1, "Please select body type"),
@@ -322,6 +321,111 @@ export default function CreateProfilePage() {
                     )}
                   </div>
                 </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="noOfChildren">Number of Children</Label>
+                    <Controller
+                      name="noOfChildren"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.noOfChildren ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select number of children" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">None</SelectItem>
+                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                            <SelectItem value="4+">4 or more</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.noOfChildren && (
+                      <p className="text-sm text-red-500">{errors.noOfChildren.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="childrenLivingStatus">Children Living Status</Label>
+                    <Controller
+                      name="childrenLivingStatus"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.childrenLivingStatus ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select children living status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="WITH_ME">With Me</SelectItem>
+                            <SelectItem value="NOT_WITH_ME">Not With Me</SelectItem>
+                            <SelectItem value="NOT_APPLICABLE">Not Applicable</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.childrenLivingStatus && (
+                      <p className="text-sm text-red-500">{errors.childrenLivingStatus.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="religion">Religion</Label>
+                    <Controller
+                      name="religion"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.religion ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select religion" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ISLAM">Islam</SelectItem>
+                            <SelectItem value="HINDUISM">Hinduism</SelectItem>
+                            <SelectItem value="CHRISTIANITY">Christianity</SelectItem>
+                            <SelectItem value="SIKHISM">Sikhism</SelectItem>
+                            <SelectItem value="BUDDHISM">Buddhism</SelectItem>
+                            <SelectItem value="JAINISM">Jainism</SelectItem>
+                            <SelectItem value="OTHER">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.religion && (
+                      <p className="text-sm text-red-500">{errors.religion.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="caste">Caste</Label>
+                    <Input
+                      id="caste"
+                      placeholder="Enter caste"
+                      {...register("caste")}
+                      className={errors.caste ? "border-red-500" : ""}
+                    />
+                    {errors.caste && (
+                      <p className="text-sm text-red-500">{errors.caste.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="citizenship">Citizenship</Label>
+                  <Input
+                    id="citizenship"
+                    placeholder="Enter citizenship"
+                    {...register("citizenship")}
+                    className={errors.citizenship ? "border-red-500" : ""}
+                  />
+                  {errors.citizenship && (
+                    <p className="text-sm text-red-500">{errors.citizenship.message}</p>
+                  )}
+                </div>
               </div>
 
               {/* Contact Information */}
@@ -340,22 +444,6 @@ export default function CreateProfilePage() {
                     {errors.mobileNumber && (
                       <p className="text-sm text-red-500">{errors.mobileNumber.message}</p>
                     )}
-                    <div className="flex items-center space-x-2 mt-2">
-                      <Controller
-                        name="hidePhoneNumber"
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            id="hidePhoneNumber"
-                          />
-                        )}
-                      />
-                      <Label htmlFor="hidePhoneNumber" className="text-sm text-gray-600">
-                        Hide my phone number from other users
-                      </Label>
-                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -422,6 +510,264 @@ export default function CreateProfilePage() {
                     />
                     {errors.residingCountry && (
                       <p className="text-sm text-red-500">{errors.residingCountry.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Physical Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Physical Information</h3>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="food">Food Preference</Label>
+                    <Controller
+                      name="food"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.food ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select food preference" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="VEGETARIAN">Vegetarian</SelectItem>
+                            <SelectItem value="NON_VEGETARIAN">Non-Vegetarian</SelectItem>
+                            <SelectItem value="EGGETARIAN">Eggetarian</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.food && (
+                      <p className="text-sm text-red-500">{errors.food.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="complexion">Complexion</Label>
+                    <Controller
+                      name="complexion"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.complexion ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select complexion" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="VERY_FAIR">Very Fair</SelectItem>
+                            <SelectItem value="FAIR">Fair</SelectItem>
+                            <SelectItem value="WHEATISH">Wheatish</SelectItem>
+                            <SelectItem value="WHEATISH_BROWN">Wheatish Brown</SelectItem>
+                            <SelectItem value="DARK">Dark</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.complexion && (
+                      <p className="text-sm text-red-500">{errors.complexion.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bodyType">Body Type</Label>
+                    <Controller
+                      name="bodyType"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.bodyType ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select body type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="AVERAGE">Average</SelectItem>
+                            <SelectItem value="ATHLETIC">Athletic</SelectItem>
+                            <SelectItem value="SLIM">Slim</SelectItem>
+                            <SelectItem value="HEAVY">Heavy</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.bodyType && (
+                      <p className="text-sm text-red-500">{errors.bodyType.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="heightCm">Height (cm)</Label>
+                    <Input
+                      id="heightCm"
+                      type="number"
+                      placeholder="Enter height in cm"
+                      {...register("heightCm")}
+                      className={errors.heightCm ? "border-red-500" : ""}
+                    />
+                    {errors.heightCm && (
+                      <p className="text-sm text-red-500">{errors.heightCm.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="weightKg">Weight (kg)</Label>
+                    <Input
+                      id="weightKg"
+                      type="number"
+                      placeholder="Enter weight in kg"
+                      {...register("weightKg")}
+                      className={errors.weightKg ? "border-red-500" : ""}
+                    />
+                    {errors.weightKg && (
+                      <p className="text-sm text-red-500">{errors.weightKg.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="physicalStatus">Physical Status</Label>
+                    <Controller
+                      name="physicalStatus"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.physicalStatus ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select physical status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="NORMAL">Normal</SelectItem>
+                            <SelectItem value="PHYSICALLY_CHALLENGED">Physically Challenged</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.physicalStatus && (
+                      <p className="text-sm text-red-500">{errors.physicalStatus.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bloodGroup">Blood Group</Label>
+                  <Controller
+                    name="bloodGroup"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className={errors.bloodGroup ? "border-red-500" : ""}>
+                          <SelectValue placeholder="Select blood group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A+">A+</SelectItem>
+                          <SelectItem value="A-">A-</SelectItem>
+                          <SelectItem value="B+">B+</SelectItem>
+                          <SelectItem value="B-">B-</SelectItem>
+                          <SelectItem value="AB+">AB+</SelectItem>
+                          <SelectItem value="AB-">AB-</SelectItem>
+                          <SelectItem value="O+">O+</SelectItem>
+                          <SelectItem value="O-">O-</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.bloodGroup && (
+                    <p className="text-sm text-red-500">{errors.bloodGroup.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Professional Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Professional Information</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="educationQualification">Education Qualification</Label>
+                    <Input
+                      id="educationQualification"
+                      placeholder="Enter education qualification"
+                      {...register("educationQualification")}
+                      className={errors.educationQualification ? "border-red-500" : ""}
+                    />
+                    {errors.educationQualification && (
+                      <p className="text-sm text-red-500">{errors.educationQualification.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="occupation">Occupation</Label>
+                    <Input
+                      id="occupation"
+                      placeholder="Enter occupation"
+                      {...register("occupation")}
+                      className={errors.occupation ? "border-red-500" : ""}
+                    />
+                    {errors.occupation && (
+                      <p className="text-sm text-red-500">{errors.occupation.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="employmentType">Employment Type</Label>
+                    <Controller
+                      name="employmentType"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.employmentType ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select employment type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="GOVERNMENT">Government</SelectItem>
+                            <SelectItem value="PRIVATE">Private</SelectItem>
+                            <SelectItem value="BUSINESS">Business</SelectItem>
+                            <SelectItem value="SELF_EMPLOYED">Self Employed</SelectItem>
+                            <SelectItem value="NOT_WORKING">Not Working</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.employmentType && (
+                      <p className="text-sm text-red-500">{errors.employmentType.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="annualIncomeCurrency">Currency</Label>
+                    <Controller
+                      name="annualIncomeCurrency"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.annualIncomeCurrency ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="INR">INR (₹)</SelectItem>
+                            <SelectItem value="USD">USD ($)</SelectItem>
+                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                            <SelectItem value="GBP">GBP (£)</SelectItem>
+                            <SelectItem value="AED">AED</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.annualIncomeCurrency && (
+                      <p className="text-sm text-red-500">{errors.annualIncomeCurrency.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="annualIncome">Annual Income</Label>
+                    <Input
+                      id="annualIncome"
+                      type="number"
+                      placeholder="Enter annual income"
+                      {...register("annualIncome")}
+                      className={errors.annualIncome ? "border-red-500" : ""}
+                    />
+                    {errors.annualIncome && (
+                      <p className="text-sm text-red-500">{errors.annualIncome.message}</p>
                     )}
                   </div>
                 </div>

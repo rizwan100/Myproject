@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings, Trash2, AlertTriangle, Menu, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import Logo from "@/components/Logo";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -174,6 +175,28 @@ export default function SettingsPage() {
         </div>
 
         <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Privacy</CardTitle>
+              <CardDescription>
+                Manage your profile visibility settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Hide Phone Number</h3>
+                    <p className="text-sm text-gray-600">
+                      Hide your phone number from other users until mutual interest
+                    </p>
+                  </div>
+                  <Checkbox />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Account Information</CardTitle>
