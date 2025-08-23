@@ -2,12 +2,11 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Phone, Mail, Menu, X } from "lucide-react";
+import { Mail, ArrowLeft, Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,32 +14,31 @@ import { z } from "zod";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import DonateButton from "@/components/DonateButton";
 
-const loginSchema = z.object({
+const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
-export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
+export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const router = useRouter();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+    getValues,
+  } = useForm<ForgotPasswordForm>({
+    resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (data: ForgotPasswordForm) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,19 +47,10 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        localStorage.setItem("token", result.access_token);
-        localStorage.setItem("user", JSON.stringify(result.user));
-        router.push("/dashboard");
+        setIsSubmitted(true);
       } else {
         const error = await response.json();
-        if (error.detail === "Please verify your email before logging in") {
-          setError("root", { 
-            message: `Please verify your email before logging in. Click here to resend verification email: /verification-pending?email=${encodeURIComponent(data.email)}`
-          });
-        } else {
-          setError("root", { message: error.detail || "Login failed" });
-        }
+        setError("root", { message: error.detail || "Failed to send reset email" });
       }
     } catch {
       setError("root", { message: "Network error. Please try again." });
@@ -92,7 +81,7 @@ export default function LoginPage() {
               <Link href="/proposals" className="text-gray-700 hover:text-rose-600 font-medium">
                 Proposals
               </Link>
-              <Link href="/login" className="text-rose-600 font-medium">
+              <Link href="/login" className="text-gray-700 hover:text-rose-600 font-medium">
                 Login
               </Link>
               <DonateButton size="sm" />
@@ -144,7 +133,7 @@ export default function LoginPage() {
                 </Link>
                 <Link
                   href="/login"
-                  className="block px-3 py-2 text-rose-600 font-medium rounded-md"
+                  className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Login
@@ -155,85 +144,78 @@ export default function LoginPage() {
         </div>
       </nav>
 
-      {/* Login Form */}
+      {/* Forgot Password Form */}
       <div className="flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md mx-4 sm:mx-0">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              {isSubmitted ? "Check Your Email" : "Forgot Password?"}
+            </CardTitle>
             <CardDescription>
-              Sign in to your account to find your perfect match
+              {isSubmitted 
+                ? "We've sent a password reset link to your email address"
+                : "Enter your email address and we'll send you a link to reset your password"
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  {...register("email")}
-                  className={errors.email ? "border-red-500" : ""}
-                />
-                {errors.email && (
-                  <p className="text-sm text-red-500">{errors.email.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="/forgot-password" className="text-sm text-rose-600 hover:text-rose-700 font-medium">
-                    Forgot Password?
-                  </Link>
-                </div>
-                <div className="relative">
+            {!isSubmitted ? (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    {...register("password")}
-                    className={errors.password ? "border-red-500 pr-10" : "pr-10"}
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    {...register("email")}
+                    className={errors.email ? "border-red-500" : ""}
                   />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
+                  {errors.email && (
+                    <p className="text-sm text-red-500">{errors.email.message}</p>
+                  )}
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password.message}</p>
+
+                {errors.root && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                    <p className="text-sm text-red-600">{errors.root.message}</p>
+                  </div>
                 )}
-              </div>
 
-              {errors.root && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                  <p className="text-sm text-red-600">{errors.root.message}</p>
+                <Button
+                  type="submit"
+                  className="w-full bg-rose-600 hover:bg-rose-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </form>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <Mail className="h-8 w-8 text-green-600" />
                 </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full bg-rose-600 hover:bg-rose-700"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing In..." : "Sign In"}
-              </Button>
-            </form>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    We've sent a password reset link to:
+                  </p>
+                  <p className="font-medium text-gray-900">{getValues("email")}</p>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Didn't receive the email?</strong> Check your spam folder or contact our support team.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Don&apos;t have an account?{" "}
-                <Link href="/register" className="text-rose-600 hover:text-rose-700 font-medium">
-                  Register for free
-                </Link>
-              </p>
+              <Link 
+                href="/login" 
+                className="inline-flex items-center gap-2 text-sm text-rose-600 hover:text-rose-700 font-medium"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Login
+              </Link>
             </div>
             
             <div className="mt-6 pt-6 border-t border-gray-200">
@@ -244,12 +226,6 @@ export default function LoginPage() {
                     <Mail className="h-4 w-4 flex-shrink-0" />
                     <a href="mailto:aasanrishtecontact@gmail.com" className="text-rose-600 hover:text-rose-700 break-all">
                       aasanrishtecontact@gmail.com
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <Phone className="h-4 w-4 flex-shrink-0" />
-                    <a href="tel:+917569319126" className="text-rose-600 hover:text-rose-700">
-                      +91 7569319126
                     </a>
                   </div>
                 </div>

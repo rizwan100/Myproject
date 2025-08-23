@@ -66,6 +66,38 @@ export default function CreateProfilePage() {
     setError,
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
+    defaultValues: {
+      createdBy: "SELF",
+      motherTongue: "URDU",
+      name: "",
+      gender: "GROOM",
+      dob: "",
+      maritalStatus: "NEVER_MARRIED",
+      noOfChildren: "0",
+      childrenLivingStatus: "WITH_ME",
+      religion: "ISLAM",
+      caste: "",
+      citizenship: "INDIAN",
+      residingCountry: "INDIA",
+      state: "",
+      city: "",
+      countryCode: "+91",
+      landline: "",
+      mobileNumber: "",
+      food: "VEGETARIAN",
+      complexion: "VERY_FAIR",
+      bodyType: "AVERAGE",
+      heightCm: "",
+      weightKg: "",
+      physicalStatus: "NORMAL",
+      bloodGroup: "A+",
+      educationQualification: "",
+      occupation: "",
+      employmentType: "GOVERNMENT",
+      annualIncomeCurrency: "INR",
+      annualIncome: "",
+      aboutMe: "",
+    },
   });
 
   useEffect(() => {
@@ -91,55 +123,73 @@ export default function CreateProfilePage() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
+      const profileData = {
+        ...data,
+        dob: new Date(data.dob).toISOString().split('T')[0],
+        heightCm: parseInt(data.heightCm),
+        weightKg: parseInt(data.weightKg),
+        annualIncome: parseInt(data.annualIncome),
+      };
+
+      console.log("Submitting profile data:", profileData);
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ...data,
-          heightCm: parseInt(data.heightCm),
-          weightKg: parseInt(data.weightKg),
-          annualIncome: parseInt(data.annualIncome),
-        }),
+        body: JSON.stringify(profileData),
       });
 
-      if (response.ok) {
-        const profileData = await response.json();
-        
-        if (biodata) {
-          const token = localStorage.getItem("token");
-          const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-            },
-          });
-          
-          if (uploadResponse.ok) {
-            const { url, fields, fileId } = await uploadResponse.json();
-            
-            const formData = new FormData();
-            Object.entries(fields).forEach(([key, value]) => {
-              formData.append(key, value as string);
-            });
-            formData.append("file", biodata);
-            
-            await fetch(url, {
-              method: "POST",
-              body: formData,
-            });
-          }
+      console.log("Profile creation response status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Profile creation error response:", errorText);
+        let errorMessage = "Failed to create profile";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.detail || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
         }
-        
-        router.push("/dashboard");
-      } else {
-        const error = await response.json();
-        setError("root", { message: error.detail || "Profile creation failed" });
+        throw new Error(errorMessage);
       }
+
+      const profileResult = await response.json();
+      console.log("Profile created successfully:", profileResult);
+
+      if (biodata) {
+        console.log("Uploading biodata file:", biodata.name);
+        const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload/biodata`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+          body: (() => {
+            const formData = new FormData();
+            formData.append("file", biodata);
+            return formData;
+          })(),
+        });
+
+        if (!uploadResponse.ok) {
+          console.error("Failed to upload biodata");
+        } else {
+          console.log("Biodata uploaded successfully");
+        }
+      }
+
+      alert("Profile created successfully!");
+      router.push("/dashboard");
     } catch (error) {
-      setError("root", { message: "Network error. Please try again." });
+      console.error("Error creating profile:", error);
+      if (error instanceof Error) {
+        setError("root", { message: error.message });
+      } else {
+        setError("root", { message: "Network error. Please try again." });
+      }
     } finally {
       setIsLoading(false);
     }
