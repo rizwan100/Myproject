@@ -32,7 +32,6 @@ class ProfileCreate(BaseModel):
     countryCode: str
     landline: Optional[str] = None
     mobileNumber: str
-    hidePhoneNumber: Optional[bool] = False
     food: str
     complexion: str
     bodyType: str
@@ -94,7 +93,7 @@ async def create_profile(profile_data: ProfileCreate, current_user = Depends(get
             "motherTongue": profile_data.motherTongue,
             "name": profile_data.name,
             "gender": profile_data.gender,
-            "dob": profile_data.dob,
+            "dob": datetime.combine(profile_data.dob, datetime.min.time()),
             "age": age,
             "maritalStatus": profile_data.maritalStatus,
             "noOfChildren": profile_data.noOfChildren,
@@ -108,7 +107,7 @@ async def create_profile(profile_data: ProfileCreate, current_user = Depends(get
             "countryCode": profile_data.countryCode,
             "landline": profile_data.landline,
             "mobileNumber": profile_data.mobileNumber,
-            "hidePhoneNumber": profile_data.hidePhoneNumber,
+            "hidePhoneNumber": False,
             "food": profile_data.food,
             "complexion": profile_data.complexion,
             "bodyType": profile_data.bodyType,
