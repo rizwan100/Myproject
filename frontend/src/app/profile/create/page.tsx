@@ -181,8 +181,7 @@ export default function CreateProfilePage() {
         }
       }
 
-      alert("Profile created successfully!");
-      router.push("/dashboard");
+      router.push("/search");
     } catch (error) {
       console.error("Error creating profile:", error);
       if (error instanceof Error) {
