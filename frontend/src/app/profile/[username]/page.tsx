@@ -117,7 +117,8 @@ export default function ProfileDetailPage() {
     try {
       const token = localStorage.getItem("token");
       
-      const response = await fetch("${API_URL}/interests/", {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch('${API_URL}/interests/', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
