@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, ArrowLeft, Menu, X, LogOut, MapPin, Calendar, Phone, Mail, Briefcase, GraduationCap, Users, Home } from "lucide-react";
+import { User, ArrowLeft, Menu, X, LogOut, MapPin, Calendar, Phone, Mail, Briefcase, GraduationCap, Users, Home, FileText, Download, Eye } from "lucide-react";
 import Logo from "@/components/Logo";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -556,6 +556,66 @@ export default function ProfileDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {profile.documents && profile.documents.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Biodata Documents
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {profile.documents.map((document) => (
+                      <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-8 w-8 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {document.type === 'BIODATA_PDF' ? 'Biodata (PDF)' : 
+                               document.type === 'BIODATA_DOC' ? 'Biodata (DOC)' : 
+                               document.type === 'BIODATA_DOCX' ? 'Biodata (DOCX)' : 'Biodata Document'}
+                            </p>
+                            <p className="text-xs text-gray-500">Click to view or download</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {document.type === 'BIODATA_PDF' ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(document.url, '_blank')}
+                              className="flex items-center gap-1"
+                            >
+                              <Eye className="h-4 w-4" />
+                              Preview
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = document.url;
+                                link.download = `biodata.${document.type === 'BIODATA_DOC' ? 'doc' : 'docx'}`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <Download className="h-4 w-4" />
+                              Download
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

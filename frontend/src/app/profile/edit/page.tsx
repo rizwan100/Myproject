@@ -219,20 +219,36 @@ export default function EditProfilePage() {
       }
 
       if (biodata) {
-        const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/upload/biodata`, {
+        console.log("Uploading biodata file:", biodata.name);
+        
+        const presignResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/upload/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
           },
-          body: (() => {
-            const formData = new FormData();
-            formData.append("file", biodata);
-            return formData;
-          })(),
         });
 
-        if (!uploadResponse.ok) {
-          console.error("Failed to upload biodata");
+        if (presignResponse.ok) {
+          const presignData = await presignResponse.json();
+          
+          const formData = new FormData();
+          Object.keys(presignData.fields).forEach(key => {
+            formData.append(key, presignData.fields[key]);
+          });
+          formData.append("file", biodata);
+
+          const uploadResponse = await fetch(presignData.url, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            console.error("Failed to upload biodata");
+          } else {
+            console.log("Biodata uploaded successfully");
+          }
+        } else {
+          console.error("Failed to get presigned URL for biodata");
         }
       }
 
