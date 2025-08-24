@@ -5,12 +5,13 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
+    libpq-dev \
     postgresql-client \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
-RUN pip install poetry
+RUN pip install poetry --no-cache-dir poetry --no-cache-dir poetry
 
 # Copy poetry files
 COPY pyproject.toml poetry.lock* ./
