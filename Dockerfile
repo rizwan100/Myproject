@@ -15,4 +15,4 @@ COPY backend/ ./backend/
 EXPOSE 8080
 
 # Run FastAPI with PORT environment variable
-CMD exec poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
