@@ -41,6 +41,10 @@ app.include_router(admin_router)
 async def read_root():
     return {"message": "Matrimonial API", "status": "running"}
 
+@app.get("/ping")
+def ping():
+    return {"status": "ok"}   
+
 @app.get("/healthz")
 async def healthz():
     return {"status": "ok"}
