@@ -9,6 +9,8 @@ from app.chat import router as chat_router
 from app.uploads import router as uploads_router
 from app.admin import router as admin_router
 from datetime import datetime
+import os
+import uvicorn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -46,3 +48,7 @@ async def healthz():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))  # Cloud Run sets PORT
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
