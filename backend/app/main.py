@@ -12,6 +12,10 @@ from datetime import datetime
 import os
 import uvicorn
 
+
+origins = [
+    "https://frontend-228802607375.asia-south1.run.app"
+]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db.connect()
@@ -23,7 +27,7 @@ app = FastAPI(lifespan=lifespan)
 # Disable CORS. Do not remove this for full-stack development.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=origins,  # Allows all origins
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
