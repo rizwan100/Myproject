@@ -71,7 +71,7 @@ export default function CreateProfilePage() {
       motherTongue: "URDU",
       name: "",
       gender: "GROOM",
-      dob: "",
+      dob: "1995-01-01",
       maritalStatus: "NEVER_MARRIED",
       noOfChildren: "0",
       childrenLivingStatus: "WITH_ME",
@@ -87,15 +87,15 @@ export default function CreateProfilePage() {
       food: "VEGETARIAN",
       complexion: "VERY_FAIR",
       bodyType: "AVERAGE",
-      heightCm: "",
-      weightKg: "",
+      heightCm: "170",
+      weightKg: "70",
       physicalStatus: "NORMAL",
       bloodGroup: "A+",
       educationQualification: "",
       occupation: "",
       employmentType: "GOVERNMENT",
       annualIncomeCurrency: "INR",
-      annualIncome: "",
+      annualIncome: "500000",
       aboutMe: "",
     },
   });
@@ -125,15 +125,15 @@ export default function CreateProfilePage() {
       const token = localStorage.getItem("token");
       const profileData = {
         ...data,
-        dob: new Date(data.dob).toISOString().split('T')[0],
-        heightCm: parseInt(data.heightCm),
-        weightKg: parseInt(data.weightKg),
-        annualIncome: parseInt(data.annualIncome),
+        dob: data.dob, // Keep as string in YYYY-MM-DD format
+        heightCm: parseInt(data.heightCm) || 0,
+        weightKg: parseInt(data.weightKg) || 0,
+        annualIncome: parseInt(data.annualIncome) || 0,
       };
 
       console.log("Submitting profile data:", profileData);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
