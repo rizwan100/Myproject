@@ -1,0 +1,18 @@
+# Use Python 3.11 slim image
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files and install
+COPY backend/pyproject.toml backend/poetry.lock* ./
+RUN pip install --no-cache-dir poetry && poetry install --no-root
+
+# Copy backend source code
+COPY backend/ ./backend/
+
+# Expose the port Cloud Run expects
+EXPOSE 8080
+
+# Run FastAPI with PORT environment variable
+CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT"]
