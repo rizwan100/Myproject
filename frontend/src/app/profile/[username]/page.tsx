@@ -567,25 +567,25 @@ export default function ProfileDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {profile.documents.map((document) => (
-                      <div key={document.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                    {profile.documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                         <div className="flex items-center gap-3">
                           <FileText className="h-8 w-8 text-blue-600" />
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {document.type === 'BIODATA_PDF' ? 'Biodata (PDF)' : 
-                               document.type === 'BIODATA_DOC' ? 'Biodata (DOC)' : 
-                               document.type === 'BIODATA_DOCX' ? 'Biodata (DOCX)' : 'Biodata Document'}
+                              {doc.type === 'BIODATA_PDF' ? 'Biodata (PDF)' : 
+                               doc.type === 'BIODATA_DOC' ? 'Biodata (DOC)' : 
+                               doc.type === 'BIODATA_DOCX' ? 'Biodata (DOCX)' : 'Biodata Document'}
                             </p>
                             <p className="text-xs text-gray-500">Click to view or download</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          {document.type === 'BIODATA_PDF' ? (
+                          {doc.type === 'BIODATA_PDF' ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => window.open(document.url, '_blank')}
+                              onClick={() => window.open(doc.url, '_blank')}
                               className="flex items-center gap-1"
                             >
                               <Eye className="h-4 w-4" />
@@ -597,8 +597,8 @@ export default function ProfileDetailPage() {
                               size="sm"
                               onClick={() => {
                                 const link = document.createElement('a');
-                                link.href = document.url;
-                                link.download = `biodata.${document.type === 'BIODATA_DOC' ? 'doc' : 'docx'}`;
+                                link.href = doc.url;
+                                link.download = `biodata.${doc.type === 'BIODATA_DOC' ? 'doc' : 'docx'}`;
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
