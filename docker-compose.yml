@@ -14,22 +14,22 @@ services:
       - backend
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      command: uvicorn app.main:app --host 0.0.0.0 --port 8080
-    ports:
-      - "8080:8080"
-    environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/matrimonial_db
-      - JWT_SECRET=your-secret-key-change-this-in-production
-      - EMAIL_HOST=smtp.gmail.com
-      - EMAIL_PORT=587
-      - EMAIL_USER=aasanrishtecontact@gmail.com
-      - EMAIL_PASSWORD=your-email-password
-    depends_on:
-      - db
-      - redis
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  command: uvicorn app.main:app --host 0.0.0.0 --port 8080
+  ports:
+    - "8080:8080"
+  environment:
+    - DATABASE_URL=postgresql://postgres:password@db:5432/matrimonial_db
+    - JWT_SECRET=your-secret-key-change-this-in-production
+    - EMAIL_HOST=smtp.gmail.com
+    - EMAIL_PORT=587
+    - EMAIL_USER=aasanrishtecontact@gmail.com
+    - EMAIL_PASSWORD=your-email-password
+  depends_on:
+    - db
+    - redis
 
   db:
     image: postgres:15
