@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Search, MessageCircle, MapPin, Calendar, Phone, Mail, Menu, X, User } from "lucide-react";
@@ -21,13 +22,35 @@ interface Profile {
   photos: Array<{ url: string; isPrimary: boolean }>;
 }
 
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+
 export default function Home() {
   const [groomProfiles, setGroomProfiles] = useState<Profile[]>([]);
   const [brideProfiles, setBrideProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    }
+
     const fetchProfiles = async () => {
       try {
         const groomResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles?lookingFor=GROOM`);
@@ -50,6 +73,13 @@ export default function Home() {
 
     fetchProfiles();
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    router.push("/");
+  };
 
   const ProfileCard = ({ profile }: { profile: Profile }) => (
     <Card className="hover:shadow-lg transition-shadow">
@@ -100,24 +130,57 @@ export default function Home() {
               <Link href="/" className="text-rose-600 font-medium">
                 Home
               </Link>
-              <Link href="/register" className="text-gray-700 hover:text-rose-600 font-medium">
-                Register Free
-              </Link>
-              <Link href="/search" className="text-gray-700 hover:text-rose-600 font-medium">
-                Advanced Search
-              </Link>
-              <Link href="/proposals" className="text-gray-700 hover:text-rose-600 font-medium">
-                Proposals
-              </Link>
-              <Link href="/login" className="text-gray-700 hover:text-rose-600 font-medium">
-                Login
-              </Link>
+              {!user ? (
+                <>
+                  <Link href="/register" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Register Free
+                  </Link>
+                  <Link href="/search" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Advanced Search
+                  </Link>
+                  <Link href="/proposals" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Proposals
+                  </Link>
+                  <Link href="/login" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Login
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/dashboard" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Dashboard
+                  </Link>
+                  <Link href="/search" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Advanced Search
+                  </Link>
+                  <Link href="/proposals" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Proposals
+                  </Link>
+                  {user.role === "ADMIN" && (
+                    <Link href="/admin" className="text-gray-700 hover:text-rose-600 font-medium">
+                      Admin Panel
+                    </Link>
+                  )}
+                  <Link href="/settings" className="text-gray-700 hover:text-rose-600 font-medium">
+                    Settings
+                  </Link>
+                </>
+              )}
               <DonateButton size="sm" />
             </div>
             <div className="flex items-center gap-4">
-              <Button asChild className="hidden sm:inline-flex bg-rose-600 hover:bg-rose-700">
-                <Link href="/register">Register Free</Link>
-              </Button>
+              {!user ? (
+                <Button asChild className="hidden sm:inline-flex bg-rose-600 hover:bg-rose-700">
+                  <Link href="/register">Register Free</Link>
+                </Button>
+              ) : (
+                <div className="hidden sm:flex items-center gap-4">
+                  <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                  <Button onClick={handleLogout} variant="outline">
+                    Logout
+                  </Button>
+                </div>
+              )}
               <button
                 className="md:hidden p-2 rounded-md text-gray-700 hover:text-rose-600 hover:bg-gray-100"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -138,34 +201,87 @@ export default function Home() {
                 >
                   Home
                 </Link>
-                <Link
-                  href="/register"
-                  className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Register Free
-                </Link>
-                <Link
-                  href="/search"
-                  className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Advanced Search
-                </Link>
-                <Link
-                  href="/proposals"
-                  className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Proposals
-                </Link>
-                <Link
-                  href="/login"
-                  className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
+                {!user ? (
+                  <>
+                    <Link
+                      href="/register"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Register Free
+                    </Link>
+                    <Link
+                      href="/search"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Advanced Search
+                    </Link>
+                    <Link
+                      href="/proposals"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Proposals
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/search"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Advanced Search
+                    </Link>
+                    <Link
+                      href="/proposals"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Proposals
+                    </Link>
+                    {user.role === "ADMIN" && (
+                      <Link
+                        href="/admin"
+                        className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+                    <Link
+                      href="/settings"
+                      className="block px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-gray-700 hover:text-rose-600 hover:bg-gray-50 rounded-md"
+                    >
+                      Logout
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
