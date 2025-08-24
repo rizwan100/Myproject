@@ -78,6 +78,89 @@ def calculate_age(birth_date: date) -> int:
     today = date.today()
     return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
+@router.get("/me", response_model=ProfileResponse)
+async def get_my_profile(current_user = Depends(get_current_user)):
+    """Get current user's own profile for editing"""
+    profile = await db.profile.find_unique(
+        where={"userId": current_user.id},
+        include={"photos": True, "documents": True}
+    )
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    return ProfileResponse(
+        id=profile.id,
+        userId=profile.userId,
+        name=profile.name,
+        gender=profile.gender,
+        age=profile.age,
+        maritalStatus=profile.maritalStatus,
+        motherTongue=profile.motherTongue,
+        religion=profile.religion,
+        caste=profile.caste,
+        city=profile.city,
+        state=profile.state,
+        residingCountry=profile.residingCountry,
+        food=profile.food,
+        complexion=profile.complexion,
+        bodyType=profile.bodyType,
+        heightCm=profile.heightCm,
+        physicalStatus=profile.physicalStatus,
+        educationQualification=profile.educationQualification,
+        occupation=profile.occupation,
+        aboutMe=profile.aboutMe,
+        approved=profile.approved,
+        createdAt=profile.createdAt.isoformat(),
+        photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
+        documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
+        mobileNumber=profile.mobileNumber,  # Show full phone number for own profile
+        hasMutualInterest=False
+    )
+
+@router.get("/user/{user_id}", response_model=ProfileResponse)
+async def get_user_profile(user_id: str, current_user = Depends(get_current_user)):
+    """Get profile by user ID - used by dashboard to check if profile exists"""
+    profile = await db.profile.find_unique(
+        where={"userId": user_id},
+        include={"photos": True, "documents": True}
+    )
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    return ProfileResponse(
+        id=profile.id,
+        userId=profile.userId,
+        name=profile.name,
+        gender=profile.gender,
+        age=profile.age,
+        maritalStatus=profile.maritalStatus,
+        motherTongue=profile.motherTongue,
+        religion=profile.religion,
+        caste=profile.caste,
+        city=profile.city,
+        state=profile.state,
+        residingCountry=profile.residingCountry,
+        food=profile.food,
+        complexion=profile.complexion,
+        bodyType=profile.bodyType,
+        heightCm=profile.heightCm,
+        physicalStatus=profile.physicalStatus,
+        educationQualification=profile.educationQualification,
+        occupation=profile.occupation,
+        aboutMe=profile.aboutMe,
+        approved=profile.approved,
+        createdAt=profile.createdAt.isoformat(),
+        photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
+        documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
+        mobileNumber=profile.mobileNumber,  # Show full phone number for own profile
+        hasMutualInterest=False
+    )
+
 @router.post("/", response_model=ProfileResponse)
 async def create_profile(profile_data: ProfileCreate, current_user = Depends(get_current_user)):
     existing_profile = await db.profile.find_unique(where={"userId": current_user.id})
@@ -359,6 +442,89 @@ async def get_profile(profile_id: str, current_user = Depends(get_current_user))
         mobileNumber=profile.mobileNumber if (not getattr(profile, 'hidePhoneNumber', False) and show_phone) else ("Hidden" if getattr(profile, 'hidePhoneNumber', False) else None)
     )
 
+
+@router.get("/me", response_model=ProfileResponse)
+async def get_my_profile(current_user = Depends(get_current_user)):
+    """Get current user's own profile for editing"""
+    profile = await db.profile.find_unique(
+        where={"userId": current_user.id},
+        include={"photos": True, "documents": True}
+    )
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    return ProfileResponse(
+        id=profile.id,
+        userId=profile.userId,
+        name=profile.name,
+        gender=profile.gender,
+        age=profile.age,
+        maritalStatus=profile.maritalStatus,
+        motherTongue=profile.motherTongue,
+        religion=profile.religion,
+        caste=profile.caste,
+        city=profile.city,
+        state=profile.state,
+        residingCountry=profile.residingCountry,
+        food=profile.food,
+        complexion=profile.complexion,
+        bodyType=profile.bodyType,
+        heightCm=profile.heightCm,
+        physicalStatus=profile.physicalStatus,
+        educationQualification=profile.educationQualification,
+        occupation=profile.occupation,
+        aboutMe=profile.aboutMe,
+        approved=profile.approved,
+        createdAt=profile.createdAt.isoformat(),
+        photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
+        documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
+        mobileNumber=profile.mobileNumber,
+        hasMutualInterest=False
+    )
+
+@router.get("/user/{user_id}", response_model=ProfileResponse)
+async def get_user_profile(user_id: str, current_user = Depends(get_current_user)):
+    """Get profile by user ID - used by dashboard to check if profile exists"""
+    profile = await db.profile.find_unique(
+        where={"userId": user_id},
+        include={"photos": True, "documents": True}
+    )
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    return ProfileResponse(
+        id=profile.id,
+        userId=profile.userId,
+        name=profile.name,
+        gender=profile.gender,
+        age=profile.age,
+        maritalStatus=profile.maritalStatus,
+        motherTongue=profile.motherTongue,
+        religion=profile.religion,
+        caste=profile.caste,
+        city=profile.city,
+        state=profile.state,
+        residingCountry=profile.residingCountry,
+        food=profile.food,
+        complexion=profile.complexion,
+        bodyType=profile.bodyType,
+        heightCm=profile.heightCm,
+        physicalStatus=profile.physicalStatus,
+        educationQualification=profile.educationQualification,
+        occupation=profile.occupation,
+        aboutMe=profile.aboutMe,
+        approved=profile.approved,
+        createdAt=profile.createdAt.isoformat(),
+        photos=[{"id": p.id, "url": p.url, "isPrimary": p.isPrimary} for p in profile.photos],
+        documents=[{"id": d.id, "url": d.url, "type": d.type} for d in profile.documents],
+        mobileNumber=profile.mobileNumber,
+        hasMutualInterest=False
+    )
 
 @router.get("/by-name/{profile_name}", response_model=ProfileResponse)
 async def get_profile_by_name(
