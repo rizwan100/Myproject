@@ -81,50 +81,57 @@ def calculate_age(birth_date: date) -> int:
 @router.post("/", response_model=ProfileResponse)
 async def create_profile(profile_data: ProfileCreate, current_user = Depends(get_current_user)):
     existing_profile = await db.profile.find_unique(where={"userId": current_user.id})
-    if existing_profile:
-        raise HTTPException(status_code=400, detail="Profile already exists")
     
     age = calculate_age(profile_data.dob)
     
-    profile = await db.profile.create(
-        data={
-            "userId": current_user.id,
-            "createdBy": profile_data.createdBy,
-            "motherTongue": profile_data.motherTongue,
-            "name": profile_data.name,
-            "gender": profile_data.gender,
-            "dob": datetime.combine(profile_data.dob, datetime.min.time()),
-            "age": age,
-            "maritalStatus": profile_data.maritalStatus,
-            "noOfChildren": profile_data.noOfChildren,
-            "childrenLivingStatus": profile_data.childrenLivingStatus,
-            "religion": profile_data.religion,
-            "caste": profile_data.caste,
-            "citizenship": profile_data.citizenship,
-            "residingCountry": profile_data.residingCountry,
-            "state": profile_data.state,
-            "city": profile_data.city,
-            "countryCode": profile_data.countryCode,
-            "landline": profile_data.landline,
-            "mobileNumber": profile_data.mobileNumber,
-            "hidePhoneNumber": False,
-            "food": profile_data.food,
-            "complexion": profile_data.complexion,
-            "bodyType": profile_data.bodyType,
-            "heightCm": profile_data.heightCm,
-            "weightKg": profile_data.weightKg,
-            "physicalStatus": profile_data.physicalStatus,
-            "bloodGroup": profile_data.bloodGroup,
-            "educationQualification": profile_data.educationQualification,
-            "occupation": profile_data.occupation,
-            "employmentType": profile_data.employmentType,
-            "annualIncomeCurrency": profile_data.annualIncomeCurrency,
-            "annualIncome": profile_data.annualIncome,
-            "aboutMe": profile_data.aboutMe,
-            "approved": True
-        },
-        include={"photos": True, "documents": True}
-    )
+    profile_data_dict = {
+        "userId": current_user.id,
+        "createdBy": profile_data.createdBy,
+        "motherTongue": profile_data.motherTongue,
+        "name": profile_data.name,
+        "gender": profile_data.gender,
+        "dob": datetime.combine(profile_data.dob, datetime.min.time()),
+        "age": age,
+        "maritalStatus": profile_data.maritalStatus,
+        "noOfChildren": profile_data.noOfChildren,
+        "childrenLivingStatus": profile_data.childrenLivingStatus,
+        "religion": profile_data.religion,
+        "caste": profile_data.caste,
+        "citizenship": profile_data.citizenship,
+        "residingCountry": profile_data.residingCountry,
+        "state": profile_data.state,
+        "city": profile_data.city,
+        "countryCode": profile_data.countryCode,
+        "landline": profile_data.landline,
+        "mobileNumber": profile_data.mobileNumber,
+        "hidePhoneNumber": False,
+        "food": profile_data.food,
+        "complexion": profile_data.complexion,
+        "bodyType": profile_data.bodyType,
+        "heightCm": profile_data.heightCm,
+        "weightKg": profile_data.weightKg,
+        "physicalStatus": profile_data.physicalStatus,
+        "bloodGroup": profile_data.bloodGroup,
+        "educationQualification": profile_data.educationQualification,
+        "occupation": profile_data.occupation,
+        "employmentType": profile_data.employmentType,
+        "annualIncomeCurrency": profile_data.annualIncomeCurrency,
+        "annualIncome": profile_data.annualIncome,
+        "aboutMe": profile_data.aboutMe,
+        "approved": True
+    }
+    
+    if existing_profile:
+        profile = await db.profile.update(
+            where={"userId": current_user.id},
+            data=profile_data_dict,
+            include={"photos": True, "documents": True}
+        )
+    else:
+        profile = await db.profile.create(
+            data=profile_data_dict,
+            include={"photos": True, "documents": True}
+        )
     
     return ProfileResponse(
         id=profile.id,
