@@ -14,6 +14,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
+
 const adminSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -85,7 +87,7 @@ export default function AdminPage() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://127.0.0.1:8000/admin/users?search=${searchTerm}`, {
+      const response = await fetch(`${API_URL.replace(/\/+$/, "")}/admin/users?search=${searchTerm}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -110,8 +112,8 @@ export default function AdminPage() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://127.0.0.1:8000/admin/users/${userId}`, {
+      const token = localStorage.getItem("token");      
+      const response = await fetch(`${API_URL.replace(/\/+$/, "")}/admin/users/${userId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -132,8 +134,8 @@ export default function AdminPage() {
 
   const onCreateAdmin = async (data: AdminForm) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/admin/users/admin", {
+      const token = localStorage.getItem("token");      
+      const response = await fetch(`${API_URL.replace(/\/+$/, "")}/admin/users/admin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

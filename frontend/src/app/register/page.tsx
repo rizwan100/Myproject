@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { api } from "@/lib/api"; // Create this file as shown above
 
 const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -46,26 +47,15 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
+      await api.post("/auth/register", {
+        email: data.email,
+        password: data.password,
       });
-
-      if (response.ok) {
-        await response.json();
-        router.push(`/verification-pending?email=${encodeURIComponent(data.email)}`);
-      } else {
-        const error = await response.json();
-        setError("root", { message: error.detail || "Registration failed" });
-      }
-    } catch {
-      setError("root", { message: "Network error. Please try again." });
+      router.push(`/verification-pending?email=${encodeURIComponent(data.email)}`);
+    } catch (error: any) {
+      // The api client throws a custom, detailed error
+      const message = error.data?.detail || error.message || "An unknown error occurred.";
+      setError("root", { message });
     } finally {
       setIsLoading(false);
     }
@@ -270,7 +260,7 @@ export default function RegisterPage() {
                     I agree to the{" "}
                     <Link href="/privacy-policy" className="text-rose-600 hover:text-rose-700 underline" target="_blank">
                       Privacy Policy
-                    </Link>
+                    </Link> 
                   </label>
                 </div>
               </div>

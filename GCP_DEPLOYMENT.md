@@ -82,10 +82,10 @@ gcloud services enable redis.googleapis.com
 ### 3. Set Project Variables
 ```bash
 export PROJECT_ID="your-project-id"
-export REGION="us-central1"
+export REGION="asia-south1"
 export DB_INSTANCE_NAME="aasan-rishte-db"
-export BACKEND_SERVICE_NAME="aasan-rishte-backend"
-export FRONTEND_SERVICE_NAME="aasan-rishte-frontend"
+export BACKEND_SERVICE_NAME="backend-service"
+export FRONTEND_SERVICE_NAME="frontend-228802607375"
 
 gcloud config set project $PROJECT_ID
 ```

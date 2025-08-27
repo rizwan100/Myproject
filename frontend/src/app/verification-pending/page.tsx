@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Mail, RefreshCw, Menu, X, Loader2 } from "lucide-react";
 import Logo from "@/components/Logo";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
+
 function VerificationPendingContent() {
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
@@ -22,7 +24,7 @@ function VerificationPendingContent() {
     setResendMessage("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/auth/resend-verification", {
+      const response = await fetch(`${API_URL.replace(/\/+$/, '')}/auth/resend-verification`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

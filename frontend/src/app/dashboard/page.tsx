@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Search, MessageCircle, LogOut, Menu, X } from "lucide-react";
-import WhatsAppButton from "@/components/WhatsAppButton";
+import { Search, MessageCircle, User, LogOut, Menu, X } from "lucide-react";
+import ProfileCard, { Profile } from "@/components/ProfileCard";
 import Logo from "@/components/Logo";
 import DonateButton from "@/components/DonateButton";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
 
 interface User {
   id: string;
@@ -21,6 +23,9 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true); // Added loading state
+  const [groomProfiles, setGroomProfiles] = useState<Profile[]>([]); // Added state for groom profiles
+  const [brideProfiles, setBrideProfiles] = useState<Profile[]>([]); // Added state for bride profiles
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +40,7 @@ export default function DashboardPage() {
     try {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
-      fetchUnreadCount(token);
+      fetchUnreadCount(token); // Fetch unread count
       
       checkUserProfile(token, parsedUser.id);
     } catch (error) {
@@ -43,10 +48,35 @@ export default function DashboardPage() {
       router.push("/login");
     }
   }, [router]);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const groomResponse = await fetch(`${API_URL}/profiles?lookingFor=GROOM&limit=6`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const brideResponse = await fetch(`${API_URL}/profiles?lookingFor=BRIDE&limit=6`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        const groomData = await groomResponse.json();
+        const brideData = await brideResponse.json();
+        setGroomProfiles(groomData);
+        setBrideProfiles(brideData);
+      } catch (error) {
+        console.error("Error fetching profiles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) fetchProfiles();
+  }, [user]); // Fetch profiles once user is loaded
   
   const checkUserProfile = async (token: string, userId: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles/user/${userId}`, {
+      const response = await fetch(`${API_URL}/profiles/user/${userId}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       
@@ -60,7 +90,7 @@ export default function DashboardPage() {
 
   const fetchUnreadCount = async (token: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/unread-count`, {
+      const response = await fetch(`${API_URL}/chat/unread-count`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (response.ok) {
@@ -329,9 +359,90 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
+        <div className="space-y-12 mt-8 sm:mt-12">
+          {/* Grooms Section */}
+          <div>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Grooms</h2>
+                <p className="text-gray-600 text-sm sm:text-base">Browse profiles of eligible bachelors looking for their life partner</p>
+              </div>
+              <Button asChild className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                <Link href="/search?lookingFor=GROOM">View All Grooms</Link>
+              </Button>
+            </div>
+            
+            {loading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="aspect-square bg-gray-200 rounded-lg mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : groomProfiles.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                {groomProfiles.map((profile) => (
+                  <ProfileCard key={profile.id} profile={profile} />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center text-gray-500">
+                  <User className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p>No groom profiles available yet</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Brides Section */}
+          <div>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Brides</h2>
+                <p className="text-gray-600 text-sm sm:text-base">Discover profiles of beautiful brides seeking their soulmate</p>
+              </div>
+              <Button asChild className="bg-rose-600 hover:bg-rose-700 w-full sm:w-auto">
+                <Link href="/search?lookingFor=BRIDE">View All Brides</Link>
+              </Button>
+            </div>
+            
+            {loading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="aspect-square bg-gray-200 rounded-lg mb-3"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : brideProfiles.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+                {brideProfiles.map((profile) => (
+                  <ProfileCard key={profile.id} profile={profile} />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center text-gray-500">
+                  <User className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p>No bride profiles available yet</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
-      
-      <WhatsAppButton variant="floating" />
     </div>
   );
 }

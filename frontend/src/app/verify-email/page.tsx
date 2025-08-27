@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CheckCircle, XCircle, Loader2, Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
+
 function VerifyEmailContent() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
@@ -24,7 +26,7 @@ function VerifyEmailContent() {
 
     const verifyEmail = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/auth/verify-email", {
+        const response = await fetch(`${API_URL.replace(/\/+$/, '')}/auth/verify-email`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

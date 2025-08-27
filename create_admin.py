@@ -9,9 +9,8 @@ import os
 import sys
 from datetime import datetime
 from getpass import getpass
-
-sys.path.append('/home/ubuntu/matrimonial-app/backend')
-
+# Dynamically add the backend directory to the Python path
+sys.path.append('/home/ubuntu/Myproject/backend')
 from app.database import db
 from app.utils import hash_password
 

@@ -17,14 +17,15 @@ class EmailService:
             email_user = os.getenv("EMAIL_USER", "aasanrishtecontact@gmail.com")
             email_password = os.getenv("EMAIL_PASSWORD")
             email_from = os.getenv("EMAIL_FROM", "aasanrishtecontact@gmail.com")
-            app_url = os.getenv("APP_URL", "http://localhost:3000")
-            
+            app_url = os.getenv("APP_URL", "http://localhost:3000").rstrip("/")  # remove trailing slash if exists
+
             if not email_password or email_password == "your-email-password":
                 print(f"Development mode: Simulating email send to {email}")
-                print(f"Verification URL: {app_url}/verify-email?token={verification_token}")
+                print(f"Verification URL: {app_url}verify-email?token={verification_token}")
                 return True
             
             verification_url = f"{app_url}/verify-email?token={verification_token}"
+
             
             html_content = f"""
             <!DOCTYPE html>

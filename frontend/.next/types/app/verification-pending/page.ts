@@ -1,4 +1,4 @@
-// File: /home/ubuntu/matrimonial-app/frontend/src/app/verification-pending/page.tsx
+// File: /home/aasanrishtecontact/Myproject/frontend/src/app/verification-pending/page.tsx
 import * as entry from '../../../../src/app/verification-pending/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

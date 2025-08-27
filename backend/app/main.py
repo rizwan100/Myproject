@@ -12,6 +12,16 @@ from datetime import datetime
 import os
 import uvicorn
 
+origins = [
+    "http://localhost:3000",  # Local frontend for development
+    "https://frontend-228802607375.asia-south1.run.app",
+    "https://frontend-228802607375.asia-south1.run.app/",
+    "https://frontend-228802607375.asia-south1.run.app:8080",
+    "https://aasanrishte.contact",
+    "https://www.aasanrishte.contact",
+]
+# For debugging, you can temporarily allow all origins, but be sure to switch back.
+# origins = ["*"]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await db.connect()
@@ -20,10 +30,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Disable CORS. Do not remove this for full-stack development.
+# Configure CORS
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["*"],  # Allows all methods
+#     allow_headers=["*"],  # Allows all headers
+# )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers

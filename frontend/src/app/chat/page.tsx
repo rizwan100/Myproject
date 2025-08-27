@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, ArrowLeft, Menu, X, LogOut, Users, Send } from "lucide-react";
 import Logo from "@/components/Logo";
 import WhatsAppButton from "@/components/WhatsAppButton";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
+
 
 interface User {
   id: string;
@@ -77,7 +79,7 @@ export default function ChatPage() {
 
   const fetchConversations = async (token: string) => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/chat/conversations", {
+      const response = await fetch(`${API_URL}/chat/conversations`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -99,7 +101,7 @@ export default function ChatPage() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/chat/messages?conversationId=${conversationId}`, {
+      const response = await fetch(`${API_URL}/chat/messages?conversationId=${conversationId}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -122,7 +124,7 @@ export default function ChatPage() {
 
     setIsSending(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/chat/messages", {
+      const response = await fetch(`${API_URL}/chat/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -155,14 +157,14 @@ export default function ChatPage() {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const response = await fetch(`http://127.0.0.1:8000/chat/messages?conversationId=${conversation.id}`, {
+          const response = await fetch(`${API_URL}/chat/messages?conversationId=${conversation.id}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (response.ok) {
             const messages = await response.json();
             for (const message of messages) {
               if (!message.readAt && message.senderId !== user?.id) {
-                await fetch(`http://127.0.0.1:8000/chat/messages/${message.id}/read`, {
+                await fetch(`${API_URL}/chat/messages/${message.id}/read`, {
                   method: "PATCH",
                   headers: { "Authorization": `Bearer ${token}` }
                 });
@@ -307,6 +309,7 @@ export default function ChatPage() {
                   <LogOut className="h-4 w-4 mr-2 inline" />
                   Logout
                 </button>
+                
               </div>
             </div>
           )}
@@ -442,7 +445,9 @@ export default function ChatPage() {
                 <>
                   {/* Chat Header */}
                   <div className="border-b pb-4 mb-4">
+                  <Link href={`/profile/${selectedConversation.otherUser.id}`}>
                     <h3 className="font-semibold text-lg">{selectedConversation.otherUser.name}</h3>
+                  </Link>
                     <p className="text-sm text-gray-600">
                       {selectedConversation.otherUser.age} years • {selectedConversation.otherUser.city}
                     </p>

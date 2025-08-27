@@ -1,10 +1,11 @@
 "use client";
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 import { Heart } from "lucide-react";
 
 interface DonateButtonProps {
-  variant?: "default" | "outline" | "ghost";
+  variant?: "default" | "outline";
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -33,10 +34,15 @@ export default function DonateButton({
     lg: "h-10 px-6 text-base"
   };
 
+  const variantClasses = {
+    default: "bg-green-600 hover:bg-green-700 text-white border border-transparent",
+    outline: "bg-transparent text-green-600 border border-green-500 hover:bg-green-50 hover:text-green-700 hover:border-green-600",
+  };
+
   return (
     <button
       onClick={handleDonate}
-      className={`${sizeClasses[size]} bg-green-600 hover:bg-green-700 text-white border border-green-600 hover:border-green-700 flex items-center gap-2 rounded-md font-medium transition-colors ${className}`}
+      className={cn("flex items-center gap-2 rounded-md font-medium transition-colors", sizeClasses[size], variantClasses[variant], className)}
     >
       <Heart className="h-4 w-4" />
       Donate

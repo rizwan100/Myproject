@@ -79,7 +79,7 @@ export default function SearchPage() {
       if (searchFilters.food && searchFilters.food !== "any") params.append("food", searchFilters.food);
       if (searchFilters.religion) params.append("religion", searchFilters.religion);
 
-      const response = await fetch(`http://127.0.0.1:8000/profiles?${params.toString()}`, {
+      const response = await fetch(`https://backend-service-228802607375.asia-south1.run.app/profiles?${params.toString()}`, {
         headers: {
           "Authorization": token ? `Bearer ${token}` : "",
         },

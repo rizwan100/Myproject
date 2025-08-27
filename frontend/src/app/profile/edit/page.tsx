@@ -15,8 +15,9 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import FileUpload from "../create/FileUpload";
 import DonateButton from "@/components/DonateButton";
+import { api } from "@/lib/api";
+import FileUploader from "@/components/FileUploader";
 
 const profileSchema = z.object({
   createdBy: z.string().min(1, "Please select who created this profile"),
@@ -129,113 +130,86 @@ export default function EditProfilePage() {
   }, [router]);
 
   const fetchProfileData = async (token: string) => {
+    setProfileLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/me`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const profileData = await response.json();
-        
-        const formData = {
-          createdBy: profileData.createdBy || "SELF",
-          motherTongue: profileData.motherTongue || "URDU",
-          name: profileData.name || "",
-          gender: profileData.gender || "GROOM",
-          dob: profileData.dob ? profileData.dob.split('T')[0] : "1995-01-01",
-          maritalStatus: profileData.maritalStatus || "NEVER_MARRIED",
-          noOfChildren: profileData.noOfChildren || "0",
-          childrenLivingStatus: profileData.childrenLivingStatus || "WITH_ME",
-          religion: profileData.religion || "ISLAM",
-          caste: profileData.caste || "",
-          citizenship: profileData.citizenship || "INDIAN",
-          residingCountry: profileData.residingCountry || "INDIA",
-          state: profileData.state || "",
-          city: profileData.city || "",
-          countryCode: profileData.countryCode || "+91",
-          landline: profileData.landline || "",
-          mobileNumber: profileData.mobileNumber || "",
-          food: profileData.food || "VEGETARIAN",
-          complexion: profileData.complexion || "VERY_FAIR",
-          bodyType: profileData.bodyType || "AVERAGE",
-          heightCm: profileData.heightCm?.toString() || "170",
-          weightKg: profileData.weightKg?.toString() || "70",
-          physicalStatus: profileData.physicalStatus || "NORMAL",
-          bloodGroup: profileData.bloodGroup || "A+",
-          educationQualification: profileData.educationQualification || "",
-          occupation: profileData.occupation || "",
-          employmentType: profileData.employmentType || "GOVERNMENT",
-          annualIncomeCurrency: profileData.annualIncomeCurrency || "INR",
-          annualIncome: profileData.annualIncome?.toString() || "500000",
-          aboutMe: profileData.aboutMe || "",
-        };
-        
-        reset(formData);
-      } else if (response.status === 404) {
+      const profileData = await api.get("profiles/me");
+
+      const formData = {
+        createdBy: profileData.createdBy || "SELF",
+        motherTongue: profileData.motherTongue || "URDU",
+        name: profileData.name || "",
+        gender: profileData.gender || "GROOM",
+        dob: profileData.dob ? profileData.dob.split('T')[0] : "1995-01-01",
+        maritalStatus: profileData.maritalStatus || "NEVER_MARRIED",
+        noOfChildren: profileData.noOfChildren?.toString() || "0",
+        childrenLivingStatus: profileData.childrenLivingStatus || "WITH_ME",
+        religion: profileData.religion || "ISLAM",
+        caste: profileData.caste || "",
+        citizenship: profileData.citizenship || "INDIAN",
+        residingCountry: profileData.residingCountry || "INDIA",
+        state: profileData.state || "",
+        city: profileData.city || "",
+        countryCode: profileData.countryCode || "+91",
+        landline: profileData.landline || "",
+        mobileNumber: profileData.mobileNumber || "",
+        food: profileData.food || "VEGETARIAN",
+        complexion: profileData.complexion || "VERY_FAIR",
+        bodyType: profileData.bodyType || "AVERAGE",
+        heightCm: profileData.heightCm?.toString() || "170",
+        weightKg: profileData.weightKg?.toString() || "70",
+        physicalStatus: profileData.physicalStatus || "NORMAL",
+        bloodGroup: profileData.bloodGroup || "A+",
+        educationQualification: profileData.educationQualification || "",
+        occupation: profileData.occupation || "",
+        employmentType: profileData.employmentType || "GOVERNMENT",
+        annualIncomeCurrency: profileData.annualIncomeCurrency || "INR",
+        annualIncome: profileData.annualIncome?.toString() || "500000",
+        aboutMe: profileData.aboutMe || "",
+      };
+      reset(formData);
+    } catch (error: any) {
+      if (error.status === 404) {
         router.push("/profile/create");
       } else {
-        console.error("Failed to fetch profile data");
+        console.error("Failed to fetch profile data:", error);
+        setError("root", { message: error.message || "Could not load profile." });
       }
-    } catch (error) {
-      console.error("Error fetching profile data:", error);
     } finally {
       setProfileLoading(false);
     }
   };
 
-  const [biodata, setBiodata] = useState<File | null>(null);
+  const [biodataFile, setBiodataFile] = useState<File | null>(null);
   
   const onSubmit = async (data: ProfileForm) => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const profileData = {
         ...data,
-        dob: data.dob,
         heightCm: parseInt(data.heightCm) || 0,
         weightKg: parseInt(data.weightKg) || 0,
         annualIncome: parseInt(data.annualIncome) || 0,
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(profileData),
-      });
+      // Use PUT to update the existing profile for the current user
+      await api.put("/profiles/me", profileData);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = "Failed to update profile";
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.detail || errorMessage;
-        } catch (e) {
-          errorMessage = errorText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
-
-      if (biodata) {
-        console.log("Uploading biodata file:", biodata.name);
+      if (biodataFile) {
+        console.log("Uploading biodata file:", biodataFile.name);
         
-        const presignResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/upload/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        });
+        const presignData = await api.post(
+          `/upload/presign?filename=${encodeURIComponent(
+            biodataFile.name
+          )}&content_type=${encodeURIComponent(biodataFile.type)}&file_type=document`,
+          {}
+        );
 
-        if (presignResponse.ok) {
-          const presignData = await presignResponse.json();
-          
+        if (presignData.url) {
           const formData = new FormData();
           Object.keys(presignData.fields).forEach(key => {
             formData.append(key, presignData.fields[key]);
           });
-          formData.append("file", biodata);
+          formData.append("file", biodataFile);
 
           const uploadResponse = await fetch(presignData.url, {
             method: "POST",
@@ -248,18 +222,14 @@ export default function EditProfilePage() {
             console.log("Biodata uploaded successfully");
           }
         } else {
-          console.error("Failed to get presigned URL for biodata");
+          console.error("Failed to get presigned URL for biodata", presignData);
         }
       }
 
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      if (error instanceof Error) {
-        setError("root", { message: error.message });
-      } else {
-        setError("root", { message: "Network error. Please try again." });
-      }
+    } catch (error: any) {
+      const message = error.data?.detail || error.message || "An unknown error occurred.";
+      setError("root", { message });
     } finally {
       setIsLoading(false);
     }
@@ -1054,8 +1024,8 @@ export default function EditProfilePage() {
               {/* Biodata Upload */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Update Biodata</h3>
-                <FileUpload 
-                  onFileSelect={(file) => setBiodata(file)}
+                <FileUploader 
+                  onFileSelect={(file) => setBiodataFile(file)}
                   acceptedTypes=".pdf,.doc,.docx"
                   maxSize={2 * 1024 * 1024}
                   label="Upload your biodata (PDF or Word document)"

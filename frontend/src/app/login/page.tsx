@@ -15,6 +15,8 @@ import { z } from "zod";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import DonateButton from "@/components/DonateButton";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
+
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -40,7 +42,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL.replace(/\/+$/, '')}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

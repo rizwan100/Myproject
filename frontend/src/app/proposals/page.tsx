@@ -9,6 +9,8 @@ import { Users, ArrowLeft, Menu, X, LogOut, UserCheck, UserPlus, Star } from "lu
 import Logo from "@/components/Logo";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
+
 interface User {
   id: string;
   email: string;
@@ -28,7 +30,7 @@ export default function ProposalsPage() {
   const fetchProposals = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://127.0.0.1:8000/interests/proposals", {
+      const response = await fetch(`${API_URL.replace(/\/+$/, '')}/interests/proposals`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -253,6 +255,7 @@ export default function ProposalsPage() {
                   <LogOut className="h-4 w-4 mr-2 inline" />
                   Logout
                 </button>
+                
               </div>
             </div>
           )}
