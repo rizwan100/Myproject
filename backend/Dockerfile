@@ -32,8 +32,9 @@ RUN poetry run prisma generate
 EXPOSE 8080
 
 # Health check
+# Use the PORT environment variable to make the health check dynamic.
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
+  CMD curl -f "http://localhost:${PORT:-8080}/health" || exit 1
 
 # Run the application
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers", "--forwarded-allow-ips=*", "--log-level", "info"]
+CMD ["/bin/sh", "-c", "exec poetry run uvicorn app.main:app --host 0.0.0.0 --port \"${PORT:-8080}\" --forwarded-allow-ips='*'"]

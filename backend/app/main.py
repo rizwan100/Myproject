@@ -29,19 +29,9 @@ async def lifespan(app: FastAPI):
     await db.disconnect()
 
 app = FastAPI(lifespan=lifespan)
-
-# Configure CORS
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],  # Allows all methods
-#     allow_headers=["*"],  # Allows all headers
-# )
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
@@ -69,4 +59,4 @@ async def health_check():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))  # Cloud Run sets PORT
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)

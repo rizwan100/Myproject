@@ -9,6 +9,8 @@ import { User, ArrowLeft, Menu, X, LogOut, MapPin, Calendar, Phone, Mail, Briefc
 import Logo from "@/components/Logo";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-service-228802607375.asia-south1.run.app';
+
 interface Profile {
   id: string;
   userId: string;
@@ -36,6 +38,7 @@ interface Profile {
   documents: Array<{ id: string; url: string; type: string }>;
   mobileNumber?: string;
   hasMutualInterest?: boolean;
+  isBlocked?: boolean;
 }
 
 interface User {
@@ -53,6 +56,8 @@ export default function ProfileDetailPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sendingInterest, setSendingInterest] = useState(false);
   const [addingToShortlist, setAddingToShortlist] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockingUser, setBlockingUser] = useState(false);
   const router = useRouter();
   const params = useParams();
   const username = params.username as string;
@@ -77,7 +82,7 @@ export default function ProfileDetailPage() {
           headers["Authorization"] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/by-name/${username}`, {
+        const response = await fetch(`${API_URL}/profiles/by-name/${username}`, {
           headers
         });
 
@@ -86,6 +91,7 @@ export default function ProfileDetailPage() {
           console.log("Profile data received:", profileData);
           console.log("hasMutualInterest:", profileData.hasMutualInterest);
           setProfile(profileData);
+          setIsBlocked(profileData.isBlocked || false);
         } else if (response.status === 404) {
           setError("Profile not found");
         } else if (response.status === 403) {
@@ -104,6 +110,17 @@ export default function ProfileDetailPage() {
     fetchProfile();
   }, [username]);
 
+  const handlePreview = (doc: { url: string; type: string }) => {
+    if (doc.type === 'BIODATA_PDF') {
+      window.open(doc.url, '_blank');
+    } else if (doc.type === 'BIODATA_DOC' || doc.type === 'BIODATA_DOCX') {
+      // Use a viewer to prevent direct download and allow preview
+      const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(doc.url)}&embedded=true`;
+      window.open(viewerUrl, '_blank');
+    }
+  };
+
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -117,8 +134,7 @@ export default function ProfileDetailPage() {
     try {
       const token = localStorage.getItem("token");
       
-      const API_URL = process.env.NEXT_PUBLIC_API_URL ;
-      const response = await fetch("https://backend-service-228802607375.asia-south1.run.app/interests" , {
+      const response = await fetch(`${API_URL}/interests` , {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -161,31 +177,38 @@ export default function ProfileDetailPage() {
     router.push("/chat");
   };
 
-  const handleBlockUser = async () => {
+  const handleBlockToggle = async () => {
     if (!profile) return;
     
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    setBlockingUser(true);
+    const endpoint = isBlocked ? '/chat/unblock-user' : '/chat/block-user';
+    const successMessage = isBlocked ? 'User unblocked successfully' : 'User blocked successfully';
+    const errorMessage = isBlocked ? 'Failed to unblock user' : 'Failed to block user';
+
     try {
-      const response = await fetch("https://backend-service-228802607375.asia-south1.run.app/chat/block-user", {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ user_id: profile.userId })
+        body: JSON.stringify({ user_id: profile.userId }),
       });
 
       if (response.ok) {
-        alert("User blocked successfully");
-        router.push("/search");
+        alert(successMessage);
+        setIsBlocked(!isBlocked);
       } else {
-        alert("Failed to block user");
+        alert(errorMessage);
       }
     } catch (error) {
-      console.error("Error blocking user:", error);
-      alert("Failed to block user");
+      console.error(`Error ${isBlocked ? 'unblocking' : 'blocking'} user:`, error);
+      alert(`Network error. Please try again.`);
+    } finally {
+      setBlockingUser(false);
     }
   };
 
@@ -442,12 +465,13 @@ export default function ProfileDetailPage() {
                       >
                         {addingToShortlist ? "Adding..." : "Add to Shortlist"}
                       </Button>
-                      <Button 
-                        onClick={handleBlockUser}
-                        variant="destructive" 
+                      <Button
+                        onClick={handleBlockToggle}
+                        variant={isBlocked ? "secondary" : "destructive"}
                         className="w-full"
+                        disabled={blockingUser}
                       >
-                        Block User
+                        {blockingUser ? (isBlocked ? 'Unblocking...' : 'Blocking...') : (isBlocked ? 'Unblock User' : 'Block User')}
                       </Button>
                     </div>
                   )}
@@ -578,38 +602,19 @@ export default function ProfileDetailPage() {
                                doc.type === 'BIODATA_DOC' ? 'Biodata (DOC)' : 
                                doc.type === 'BIODATA_DOCX' ? 'Biodata (DOCX)' : 'Biodata Document'}
                             </p>
-                            <p className="text-xs text-gray-500">Click to view or download</p>
+                            <p className="text-xs text-gray-500">Click to preview</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          {doc.type === 'BIODATA_PDF' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => window.open(doc.url, '_blank')}
-                              className="flex items-center gap-1"
-                            >
-                              <Eye className="h-4 w-4" />
-                              Preview
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = doc.url;
-                                link.download = `biodata.${doc.type === 'BIODATA_DOC' ? 'doc' : 'docx'}`;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                              }}
-                              className="flex items-center gap-1"
-                            >
-                              <Download className="h-4 w-4" />
-                              Download
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePreview(doc)}
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Preview
+                          </Button>
                         </div>
                       </div>
                     ))}

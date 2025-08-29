@@ -50,7 +50,7 @@ const ProfileCard = ({ profile }: { profile: Profile }) => (
         </div>
       </div>
       <Button asChild className="w-full mt-3 bg-rose-600 hover:bg-rose-700" size="sm">
-        <Link href={`/profile/${profile.id}`}>View Profile</Link>
+        <Link href={`/profile/${encodeURIComponent(profile.name)}`}>View Profile</Link>
       </Button>
     </CardContent>
   </Card>

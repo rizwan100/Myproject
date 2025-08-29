@@ -445,7 +445,7 @@ export default function ChatPage() {
                 <>
                   {/* Chat Header */}
                   <div className="border-b pb-4 mb-4">
-                  <Link href={`/profile/${selectedConversation.otherUser.id}`}>
+                  <Link href={`/profile/${encodeURIComponent(selectedConversation.otherUser.name)}`}>
                     <h3 className="font-semibold text-lg">{selectedConversation.otherUser.name}</h3>
                   </Link>
                     <p className="text-sm text-gray-600">

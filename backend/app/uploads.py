@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.database import db
 from app.auth_utils import get_current_user
-import boto3
-from botocore.exceptions import ClientError
+from google.cloud import storage
+from google.api_core import exceptions as gcp_exceptions
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 import uuid
 
 router = APIRouter(prefix="/upload", tags=["uploads"])
@@ -15,21 +15,19 @@ class PresignedUrlResponse(BaseModel):
     fields: dict
     fileId: str
 
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+# GCP config
+GCP_BUCKET_NAME = os.getenv("GCP_BUCKET_NAME", "aasan-rishte-uploads")
 
-def get_s3_client():
-    if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME]):
+def get_gcs_client():
+    # The client will automatically use credentials from the environment
+    # (e.g., GOOGLE_APPLICATION_CREDENTIALS)
+    if not GCP_BUCKET_NAME:
         return None
-    
-    return boto3.client(
-        's3',
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=AWS_REGION
-    )
+    try:
+        return storage.Client()
+    except Exception:
+        # Could fail if credentials are not set up correctly
+        return None
 
 @router.post("/presign", response_model=PresignedUrlResponse)
 async def create_presigned_post(
@@ -55,10 +53,12 @@ async def create_presigned_post(
     if not user_profile:
         raise HTTPException(status_code=400, detail="Please create your profile first")
     
-    s3_client = get_s3_client()
-    if not s3_client:
+    gcs_client = get_gcs_client()
+    if not gcs_client:
+        # This part handles local development without GCS credentials
+        # It returns a mock response and saves a mock URL to the DB
         file_id = str(uuid.uuid4())
-        mock_url = f"https://mock-s3-bucket.s3.amazonaws.com/{file_id}/{filename}"
+        mock_url = f"https://storage.googleapis.com/mock-bucket/{file_type}s/{current_user.id}/{file_id}/{filename}"
         
         if file_type == "photo":
             photo_count = await db.photo.count(where={"profileId": user_profile.id})
@@ -84,29 +84,30 @@ async def create_presigned_post(
         return PresignedUrlResponse(
             url="https://mock-upload-endpoint.com/upload",
             fields={
-                "key": f"{file_id}/{filename}",
+                "key": f"{file_type}s/{current_user.id}/{file_id}/{filename}",
                 "Content-Type": content_type,
-                "x-amz-algorithm": "AWS4-HMAC-SHA256"
             },
             fileId=file_id
         )
     
     try:
+        bucket = gcs_client.bucket(GCP_BUCKET_NAME)
         file_id = str(uuid.uuid4())
-        file_key = f"{file_type}s/{current_user.id}/{file_id}/{filename}"
+        blob_name = f"{file_type}s/{current_user.id}/{file_id}/{filename}"
+        blob = bucket.blob(blob_name)
         
-        response = s3_client.generate_presigned_post(
-            Bucket=S3_BUCKET_NAME,
-            Key=file_key,
-            Fields={"Content-Type": content_type},
+        policy = blob.generate_signed_post_policy_v4(
+            expiration=timedelta(hours=1),
             Conditions=[
-                {"Content-Type": content_type},
+                ["starts-with", "$Content-Type", "image/" if file_type == "photo" else "application/"],
                 ["content-length-range", 1, max_size]
             ],
-            ExpiresIn=3600  # 1 hour
+            fields={
+                'Content-Type': content_type
+            }
         )
         
-        file_url = f"https://{S3_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{file_key}"
+        file_url = f"https://storage.googleapis.com/{GCP_BUCKET_NAME}/{blob_name}"
         
         if file_type == "photo":
             photo_count = await db.photo.count(where={"profileId": user_profile.id})
@@ -130,13 +131,13 @@ async def create_presigned_post(
             )
         
         return PresignedUrlResponse(
-            url=response["url"],
-            fields=response["fields"],
+            url=policy['url'],
+            fields=policy['fields'],
             fileId=file_id
         )
         
-    except ClientError as e:
-        raise HTTPException(status_code=500, detail=f"S3 error: {str(e)}")
+    except gcp_exceptions.GoogleAPICallError as e:
+        raise HTTPException(status_code=500, detail=f"GCS error: {str(e)}")
 
 @router.delete("/photo/{photo_id}")
 async def delete_photo(photo_id: str, current_user = Depends(get_current_user)):
@@ -151,6 +152,19 @@ async def delete_photo(photo_id: str, current_user = Depends(get_current_user)):
     if photo.profile.userId != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    # Delete from GCS
+    gcs_client = get_gcs_client()
+    if gcs_client and GCP_BUCKET_NAME and photo.url.startswith(f"https://storage.googleapis.com/{GCP_BUCKET_NAME}/"):
+        try:
+            bucket = gcs_client.bucket(GCP_BUCKET_NAME)
+            # Extract blob name from URL
+            blob_name = photo.url.split(f"https://storage.googleapis.com/{GCP_BUCKET_NAME}/", 1)[1]
+            blob = bucket.blob(blob_name)
+            blob.delete()
+        except Exception as e:
+            # Log the error but don't fail the request, as the DB entry is more critical
+            print(f"Could not delete photo {photo_id} from GCS: {e}")
+
     await db.photo.delete(where={"id": photo_id})
     
     return {"message": "Photo deleted successfully"}
@@ -168,6 +182,19 @@ async def delete_document(document_id: str, current_user = Depends(get_current_u
     if document.profile.userId != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    # Delete from GCS
+    gcs_client = get_gcs_client()
+    if gcs_client and GCP_BUCKET_NAME and document.url.startswith(f"https://storage.googleapis.com/{GCP_BUCKET_NAME}/"):
+        try:
+            bucket = gcs_client.bucket(GCP_BUCKET_NAME)
+            # Extract blob name from URL
+            blob_name = document.url.split(f"https://storage.googleapis.com/{GCP_BUCKET_NAME}/", 1)[1]
+            blob = bucket.blob(blob_name)
+            blob.delete()
+        except Exception as e:
+            # Log the error but don't fail the request
+            print(f"Could not delete document {document_id} from GCS: {e}")
+
     await db.document.delete(where={"id": document_id})
     
     return {"message": "Document deleted successfully"}

@@ -1,8 +1,7 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/aasan-rishte-backend', '.']
-    dir: 'backend'
-  
+
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/aasan-rishte-backend']
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -18,7 +17,7 @@ steps:
     - 'managed'
     - '--allow-unauthenticated'
     - '--set-env-vars'
-    - 'DATABASE_URL=$$DATABASE_URL,JWT_SECRET=$$JWT_SECRET,EMAIL_HOST=$$EMAIL_HOST,EMAIL_PORT=$$EMAIL_PORT,EMAIL_USER=$$EMAIL_USER,EMAIL_PASSWORD=$$EMAIL_PASSWORD'
+    - 'DATABASE_URL=$$DATABASE_URL,JWT_SECRET=$$JWT_SECRET,EMAIL_HOST=$$EMAIL_HOST,EMAIL_PORT=$$EMAIL_PORT,EMAIL_USER=$$EMAIL_USER,EMAIL_PASSWORD=$$EMAIL_PASSWORD,GCP_BUCKET_NAME=aasan-rishte-uploads'
     - '--add-cloudsql-instances'
     - '$PROJECT_ID:asia-south1:aasan-rishte-db'
     secretEnv: ['DATABASE_URL', 'JWT_SECRET', 'EMAIL_HOST', 'EMAIL_PORT', 'EMAIL_USER', 'EMAIL_PASSWORD']
