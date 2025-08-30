@@ -59,7 +59,7 @@ export default function RegisterPage() {
 
       if (response.ok) {
         await response.json();
-        router.push(`/verification-pending?email=${encodeURIComponent(data.email)}`);
+        router.push(`verification-pending?email=${encodeURIComponent(data.email)}`);
       } else {
         const error = await response.json();
         setError("root", { message: error.detail || "Registration failed" });
