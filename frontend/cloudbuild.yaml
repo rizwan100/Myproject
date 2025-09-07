@@ -9,7 +9,7 @@ steps:
     args:
     - 'run'
     - 'deploy'
-    - 'aasan-rishte-frontend'
+    - 'frontend'
     - '--image'
     - 'gcr.io/$PROJECT_ID/aasan-rishte-frontend'
     - '--region'
@@ -17,8 +17,7 @@ steps:
     - '--platform'
     - 'managed'
     - '--allow-unauthenticated'
-    - '--set-env-vars'
-    - 'NEXT_PUBLIC_API_URL=https://aasan-rishte-backend-hash-uc.a.run.app,NEXT_PUBLIC_APP_NAME=Aasan Rishte,NEXT_PUBLIC_SUPPORT_EMAIL=aasanrishtecontact@gmail.com,NEXT_PUBLIC_SUPPORT_PHONE=+917569319126,NEXT_PUBLIC_WHATSAPP_URL=https://wa.me/+917569319126'
+    - '--set-env-vars=NEXT_PUBLIC_API_URL=https://aasan-rishte-backend-228802607375.asia-south1.run.app,NEXT_PUBLIC_APP_NAME=Aasan Rishte,NEXT_PUBLIC_SUPPORT_EMAIL=aasanrishtecontact@gmail.com,NEXT_PUBLIC_SUPPORT_PHONE=+917569319126,NEXT_PUBLIC_WHATSAPP_URL=https://wa.me/+917569319126'
 
 images:
   - 'gcr.io/$PROJECT_ID/aasan-rishte-frontend'
