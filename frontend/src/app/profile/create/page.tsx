@@ -9,14 +9,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, User } from "lucide-react";
+import { User } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import WhatsAppButton from "@/components/WhatsAppButton";
-import { Checkbox } from "@/components/ui/checkbox";
-import FileUpload from "./FileUpload";
+import WhatsAppButton from "@/components/WhatsAppButton"; 
+import FileUpload from "@/components/FileUpload";
+import { countries } from "./countries";
+import { indianStates } from "./indian-states";
+import { indianCities } from "./indian-cities";
+
+const steps = [
+  {
+    id: "Basic Info",
+    title: "Basic Information",
+    fields: [
+      "createdBy", "motherTongue", "name", "gender", "dob", "maritalStatus", 
+      "noOfChildren", "childrenLivingStatus", "religion", "caste", "citizenship"
+    ],
+  },
+  {
+    id: "Contact",
+    title: "Contact Information",
+    fields: [
+      "residingCountry", "state", "city", "countryCode", "mobileNumber", "landline"
+    ],
+  },
+  {
+    id: "Physical",
+    title: "Physical Information",
+    fields: ["food", "complexion", "bodyType", "heightCm", "weightKg", "physicalStatus"],
+  },
+  { id: "Professional", title: "Professional Information", fields: ["educationQualification", "occupation", "employmentType", "annualIncomeCurrency", "annualIncome"] },
+  { id: "About", title: "About Me & Biodata", fields: ["aboutMe"] },
+  { id: "Review", title: "Review & Submit", fields: [] },
+];
 
 const profileSchema = z.object({
   createdBy: z.string().min(1, "Please select who created this profile"),
@@ -42,7 +70,6 @@ const profileSchema = z.object({
   heightCm: z.string().min(1, "Please enter height"),
   weightKg: z.string().min(1, "Please enter weight"),
   physicalStatus: z.string().min(1, "Please select physical status"),
-  bloodGroup: z.string().min(1, "Please select blood group"),
   educationQualification: z.string().min(1, "Please enter education qualification"),
   occupation: z.string().min(1, "Please enter occupation"),
   employmentType: z.string().min(1, "Please select employment type"),
@@ -53,10 +80,39 @@ const profileSchema = z.object({
 
 type ProfileForm = z.infer<typeof profileSchema>;
 
+const ReviewDetails = ({ data }: { data: ProfileForm }) => {
+  const sections = [
+    { title: "Basic Information", fields: { "Profile Created By": data.createdBy, "Mother Tongue": data.motherTongue, "Full Name": data.name, Gender: data.gender, "Date of Birth": data.dob, "Marital Status": data.maritalStatus, "Number of Children": data.noOfChildren, "Children Living Status": data.childrenLivingStatus, Religion: data.religion, Caste: data.caste, Citizenship: data.citizenship } },
+    { title: "Contact Information", fields: { "Residing Country": data.residingCountry, State: data.state, City: data.city, "Country Code": data.countryCode, "Mobile Number": data.mobileNumber, "Landline": data.landline || 'N/A' } },
+    { title: "Physical Information", fields: { "Food Preference": data.food, Complexion: data.complexion, "Body Type": data.bodyType, "Height (cm)": data.heightCm, "Weight (kg)": data.weightKg, "Physical Status": data.physicalStatus } },
+    { title: "Professional Information", fields: { "Education Qualification": data.educationQualification, Occupation: data.occupation, "Employment Type": data.employmentType, Currency: data.annualIncomeCurrency, "Annual Income": data.annualIncome } },
+    { title: "About Me", fields: { "About Yourself": data.aboutMe } },
+  ];
+
+  return (
+    <div className="space-y-6 rounded-lg border p-4 sm:p-6 bg-gray-50/50">
+      {sections.map((section) => (
+        <div key={section.title}>
+          <h4 className="text-md font-semibold text-gray-800 mb-3 border-b pb-2">{section.title}</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 text-sm">
+            {Object.entries(section.fields).map(([label, value]) => (
+              <div key={label} className="flex flex-col sm:flex-row sm:items-center">
+                <p className="font-medium text-gray-500 w-full sm:w-1/2">{label}:</p>
+                <p className="text-gray-900 w-full sm:w-1/2 break-words">{String(value)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function CreateProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
   const {
     register,
@@ -64,6 +120,10 @@ export default function CreateProfilePage() {
     control,
     formState: { errors },
     setError,
+    watch,
+    getValues,
+    trigger,
+    reset,
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -71,31 +131,30 @@ export default function CreateProfilePage() {
       motherTongue: "URDU",
       name: "",
       gender: "GROOM",
-      dob: "1995-01-01",
-      maritalStatus: "NEVER_MARRIED",
+      dob: "",
+      maritalStatus: "",
       noOfChildren: "0",
-      childrenLivingStatus: "WITH_ME",
+      childrenLivingStatus: "",
       religion: "ISLAM",
       caste: "",
-      citizenship: "INDIAN",
-      residingCountry: "INDIA",
-      state: "",
-      city: "",
+      citizenship: "India",
+      residingCountry: "India",
+      state: "Telangana",
+      city: "Hyderabad",
       countryCode: "+91",
       landline: "",
       mobileNumber: "",
-      food: "VEGETARIAN",
-      complexion: "VERY_FAIR",
-      bodyType: "AVERAGE",
-      heightCm: "170",
-      weightKg: "70",
-      physicalStatus: "NORMAL",
-      bloodGroup: "A+",
+      food: "",
+      complexion: "",
+      bodyType: "",
+      heightCm: "",
+      weightKg: "",
+      physicalStatus: "",
       educationQualification: "",
       occupation: "",
-      employmentType: "GOVERNMENT",
+      employmentType: "",
       annualIncomeCurrency: "INR",
-      annualIncome: "500000",
+      annualIncome: "",
       aboutMe: "",
     },
   });
@@ -117,7 +176,42 @@ export default function CreateProfilePage() {
     }
   }, [router]);
 
+  // Load draft from local storage on component mount
+  useEffect(() => {
+    const draftData = localStorage.getItem("profileDraft");
+    if (draftData) {
+      try {
+        const parsedData = JSON.parse(draftData);
+        reset(parsedData);
+        console.log("Draft loaded from local storage.");
+      } catch (error) {
+        console.error("Error parsing draft data:", error);
+      }
+    }
+  }, [reset]);
   const [biodata, setBiodata] = useState<File | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const handleNext = async () => {
+    const fields = steps[currentStep].fields;
+    const output = await trigger(fields as (keyof ProfileForm)[], {
+      shouldFocus: true,
+    });
+
+    if (!output) return;
+
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  const handleBack = () => {
+    setCurrentStep((prev) => prev - 1);
+  };
+
+  const handleSaveDraft = () => {
+    const currentData = getValues();
+    localStorage.setItem("profileDraft", JSON.stringify(currentData));
+    router.push("/dashboard");
+  };
   
   const onSubmit = async (data: ProfileForm) => {
     setIsLoading(true);
@@ -133,7 +227,7 @@ export default function CreateProfilePage() {
 
       console.log("Submitting profile data:", profileData);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles/`, {
+      const response = await fetch(`${API_URL}/profiles/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -163,7 +257,7 @@ export default function CreateProfilePage() {
       if (biodata) {
         console.log("Uploading biodata file:", biodata.name);
         
-        const presignResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
+        const presignResponse = await fetch(`${API_URL}/uploads/presign?filename=${encodeURIComponent(biodata.name)}&content_type=${encodeURIComponent(biodata.type)}&file_type=document`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -249,11 +343,38 @@ export default function CreateProfilePage() {
               Fill in your details to help others find their perfect match
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <CardContent>            
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                {steps.map((step, index) => (
+                  <div key={step.id} className="text-center w-1/6">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition-colors duration-300 text-sm font-medium ${
+                        currentStep > index
+                          ? "bg-rose-600 text-white"
+                          : currentStep === index
+                          ? "bg-rose-600 text-white ring-4 ring-rose-200"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {index + 1}
+                    </div>
+                    <p className={`text-xs mt-2 font-medium truncate ${currentStep >= index ? 'text-rose-600' : 'text-gray-500'}`}>{step.id}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-gray-200 rounded-full h-1.5">
+                <div
+                  className="bg-rose-600 h-1.5 rounded-full transition-all duration-500"
+                  style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {/* Basic Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+              {currentStep === 0 && (
+              <div className="space-y-4 animate-in fade-in-0 duration-500">
+                <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">{steps[0].title}</h3>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -447,12 +568,6 @@ export default function CreateProfilePage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="ISLAM">Islam</SelectItem>
-                            <SelectItem value="HINDUISM">Hinduism</SelectItem>
-                            <SelectItem value="CHRISTIANITY">Christianity</SelectItem>
-                            <SelectItem value="SIKHISM">Sikhism</SelectItem>
-                            <SelectItem value="BUDDHISM">Buddhism</SelectItem>
-                            <SelectItem value="JAINISM">Jainism</SelectItem>
-                            <SelectItem value="OTHER">Other</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -477,22 +592,33 @@ export default function CreateProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="citizenship">Citizenship</Label>
-                  <Input
-                    id="citizenship"
-                    placeholder="Enter citizenship"
-                    {...register("citizenship")}
-                    className={errors.citizenship ? "border-red-500" : ""}
+                  <Label htmlFor="citizenship">Citizenship</Label>                  
+                  <Controller
+                    name="citizenship"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className={errors.citizenship ? "border-red-500" : ""}>
+                          <SelectValue placeholder="Select citizenship" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem key={country.value} value={country.label}>{country.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
                   {errors.citizenship && (
                     <p className="text-sm text-red-500">{errors.citizenship.message}</p>
                   )}
                 </div>
-              </div>
+              </div>)}
 
               {/* Contact Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+              {currentStep === 1 && (
+              <div className="space-y-4 animate-in fade-in-0 duration-500">
+                <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">{steps[1].title}</h3>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -524,12 +650,22 @@ export default function CreateProfilePage() {
 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      placeholder="Enter city"
-                      {...register("city")}
-                      className={errors.city ? "border-red-500" : ""}
+                    <Label htmlFor="city">City</Label>                    
+                    <Controller
+                      name="city"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.city ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select city" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {indianCities.map((city) => (
+                              <SelectItem key={city.value} value={city.label}>{city.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     />
                     {errors.city && (
                       <p className="text-sm text-red-500">{errors.city.message}</p>
@@ -538,11 +674,21 @@ export default function CreateProfilePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      placeholder="Enter state"
-                      {...register("state")}
-                      className={errors.state ? "border-red-500" : ""}
+                    <Controller
+                      name="state"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className={errors.state ? "border-red-500" : ""}>
+                            <SelectValue placeholder="Select state" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {indianStates.map((state) => (
+                              <SelectItem key={state.value} value={state.label}>{state.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     />
                     {errors.state && (
                       <p className="text-sm text-red-500">{errors.state.message}</p>
@@ -555,17 +701,14 @@ export default function CreateProfilePage() {
                       name="residingCountry"
                       control={control}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue="India">
                           <SelectTrigger className={errors.residingCountry ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select country" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="INDIA">India</SelectItem>
-                            <SelectItem value="USA">USA</SelectItem>
-                            <SelectItem value="UK">UK</SelectItem>
-                            <SelectItem value="CANADA">Canada</SelectItem>
-                            <SelectItem value="AUSTRALIA">Australia</SelectItem>
-                            <SelectItem value="UAE">UAE</SelectItem>
+                            {countries.map((country) => (
+                              <SelectItem key={country.value} value={country.label}>{country.label}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       )}
@@ -575,11 +718,12 @@ export default function CreateProfilePage() {
                     )}
                   </div>
                 </div>
-              </div>
+              </div>)}
 
               {/* Physical Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Physical Information</h3>
+              {currentStep === 2 && (
+              <div className="space-y-4 animate-in fade-in-0 duration-500">
+                <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">{steps[2].title}</h3>
                 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -707,38 +851,12 @@ export default function CreateProfilePage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bloodGroup">Blood Group</Label>
-                  <Controller
-                    name="bloodGroup"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className={errors.bloodGroup ? "border-red-500" : ""}>
-                          <SelectValue placeholder="Select blood group" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="A+">A+</SelectItem>
-                          <SelectItem value="A-">A-</SelectItem>
-                          <SelectItem value="B+">B+</SelectItem>
-                          <SelectItem value="B-">B-</SelectItem>
-                          <SelectItem value="AB+">AB+</SelectItem>
-                          <SelectItem value="AB-">AB-</SelectItem>
-                          <SelectItem value="O+">O+</SelectItem>
-                          <SelectItem value="O-">O-</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.bloodGroup && (
-                    <p className="text-sm text-red-500">{errors.bloodGroup.message}</p>
-                  )}
-                </div>
-              </div>
+              </div>)}
 
               {/* Professional Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Professional Information</h3>
+              {currentStep === 3 && (
+              <div className="space-y-4 animate-in fade-in-0 duration-500">
+                <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">{steps[3].title}</h3>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -770,7 +888,7 @@ export default function CreateProfilePage() {
 
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="employmentType">Employment Type</Label>
+                    <Label htmlFor="employmentType">Employment Type <span className="text-red-500">*</span></Label>
                     <Controller
                       name="employmentType"
                       control={control}
@@ -833,11 +951,12 @@ export default function CreateProfilePage() {
                     )}
                   </div>
                 </div>
-              </div>
+              </div>)}
 
               {/* About Me */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">About Me</h3>
+              {currentStep === 4 && (
+              <div className="space-y-4 animate-in fade-in-0 duration-500">
+                <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">{steps[4].title}</h3>
                 <div className="space-y-2">
                   <Label htmlFor="aboutMe">Tell us about yourself</Label>
                   <Textarea
@@ -851,41 +970,56 @@ export default function CreateProfilePage() {
                     <p className="text-sm text-red-500">{errors.aboutMe.message}</p>
                   )}
                 </div>
-              </div>
-              
-              {/* Biodata Upload */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Upload Biodata</h3>
+                <h3 className="text-lg font-semibold text-gray-900 pt-4">Upload Biodata</h3>
                 <FileUpload 
-                  onFileSelect={(file) => setBiodata(file)}
+                  onFileSelect={setBiodata}
                   acceptedTypes=".pdf,.doc,.docx"
                   maxSize={2 * 1024 * 1024}
                   label="Upload your biodata (PDF or Word document)"
                 />
-              </div>
+              </div>)}
 
+              {/* Review and Submit */}
+              {currentStep === 5 && (
+              <div className="space-y-6 animate-in fade-in-0 duration-500">
+                <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">{steps[5].title}</h3>
+                <p className="text-sm text-gray-600">Please review all your information carefully before submitting.</p>
+                <ReviewDetails data={watch()} />
+                <div className="pt-4">
+                  <h4 className="text-lg font-semibold text-gray-900">Biodata File</h4>
+                  <p className="text-sm text-gray-700">{biodata ? biodata.name : "No biodata file uploaded."}</p>
+                </div>
+              </div>)}
+              
               {errors.root && (
                 <div className="bg-red-50 border border-red-200 rounded-md p-3">
                   <p className="text-sm text-red-600">{errors.root.message}</p>
                 </div>
               )}
 
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  Save as Draft
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-rose-600 hover:bg-rose-700"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Creating Profile..." : "Create Profile"}
-                </Button>
+              {/* Navigation Buttons */}
+              <div className="flex justify-between items-center pt-6">
+                <div>
+                  <Button type="button" variant="ghost" onClick={handleSaveDraft}>
+                    Save as Draft
+                  </Button>
+                </div>
+                <div className="flex gap-4">
+                {currentStep > 0 && (
+                    <Button type="button" variant="outline" onClick={handleBack}>
+                    Back
+                  </Button>
+                )}
+                {currentStep < steps.length - 1 ? (
+                    <Button type="button" onClick={handleNext} className="bg-rose-600 hover:bg-rose-700">
+                    Next
+                  </Button>
+                ) : (
+                  <Button type="submit" className="bg-rose-600 hover:bg-rose-700" disabled={isLoading}>
+                    {isLoading ? "Creating Profile..." : "Create Profile"}
+                  </Button>
+                )}
+                </div>
               </div>
             </form>
           </CardContent>
